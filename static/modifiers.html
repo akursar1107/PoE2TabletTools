@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <title>PoE2 Tablet Modifiers Reference</title>
+        <style>
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+            body {
+                background: #0e0e0e;
+                color: #c9b99a;
+                font-family: "Segoe UI", sans-serif;
+                font-size: 13px;
+            }
+            header {
+                padding: 14px 24px;
+                border-bottom: 1px solid #2a2a2a;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+            header h1 {
+                font-size: 17px;
+                color: #e8d5a3;
+                letter-spacing: 1px;
+            }
+            #status {
+                font-size: 12px;
+                color: #666;
+            }
+            #status.ok {
+                color: #5a9e5a;
+            }
+            #refresh-bar {
+                height: 2px;
+                background: #a08050;
+                transition: width 0.5s linear;
+                width: 100%;
+            }
+            .top-nav { background: #1a1a1a; border-bottom: 1px solid #2a2a2a; padding: 8px 24px; display: flex; gap: 24px; }
+            .top-nav a { color: #888; text-decoration: none; font-size: 12px; padding: 4px 8px; border-radius: 4px; transition: all 0.2s; }
+            .top-nav a:hover { color: #c8a96e; background: #2a2a2a; }
+            .top-nav a.active { color: #c8a96e; background: #2a2a2a; }
+            .panel { background: #141414; border: 1px solid #2a2a2a; border-radius: 6px; overflow: hidden; margin-bottom: 14px; }
+            .panel h2 { padding: 9px 14px; font-size: 12px; color: #a08050; background: #1a1a1a; border-bottom: 1px solid #2a2a2a; text-transform: uppercase; letter-spacing: 1px; }
+            .tablet-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+                gap: 14px;
+                padding: 14px;
+            }
+            .tablet-card {
+                background: #141414;
+                border: 1px solid #2a2a2a;
+                border-radius: 6px;
+                overflow: hidden;
+            }
+            .tablet-card h3 {
+                padding: 9px 14px;
+                font-size: 13px;
+                color: #c8a96e;
+                background: #1a1a1a;
+                border-bottom: 1px solid #2a2a2a;
+                text-transform: capitalize;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            .tablet-card h3:hover {
+                background: #2a2a2a;
+            }
+            .tablet-card h3::before {
+                content: "▶ ";
+                font-size: 10px;
+                color: #666;
+            }
+            .tablet-card h3.expanded::before {
+                content: "▼ ";
+            }
+            .mod-list {
+                padding: 14px;
+                display: none;
+            }
+            .mod-list.expanded {
+                display: block;
+            }
+            .mod-group {
+                margin-bottom: 12px;
+                padding-bottom: 12px;
+                border-bottom: 1px solid #1e1e1e;
+            }
+            .mod-group:last-child {
+                border-bottom: none;
+                margin-bottom: 0;
+                padding-bottom: 0;
+            }
+            .mod-group-title {
+                font-size: 11px;
+                color: #888;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                margin-bottom: 6px;
+            }
+            .mod-item {
+                font-size: 12px;
+                color: #aaa;
+                padding: 3px 0;
+                padding-left: 12px;
+                border-left: 2px solid #333;
+                margin: 2px 0;
+            }
+            .mod-item:hover {
+                color: #c8a96e;
+                border-left-color: #a08050;
+            }
+            .suffix-label {
+                font-size: 10px;
+                color: #669966;
+                background: rgba(102, 153, 102, 0.1);
+                padding: 1px 4px;
+                border-radius: 2px;
+                margin-right: 6px;
+            }
+            .prefix-label {
+                font-size: 10px;
+                color: #996666;
+                background: rgba(153, 102, 102, 0.1);
+                padding: 1px 4px;
+                border-radius: 2px;
+                margin-right: 6px;
+            }
+            .filter-bar {
+                padding: 14px 24px;
+                border-bottom: 1px solid #2a2a2a;
+                background: #1a1a1a;
+            }
+            .filter-bar input {
+                background: #2a2a2a;
+                border: 1px solid #3a3a3a;
+                color: #c9b99a;
+                padding: 6px 10px;
+                border-radius: 4px;
+                font-size: 12px;
+                width: 200px;
+            }
+            .filter-bar input:focus {
+                outline: none;
+                border-color: #a08050;
+            }
+            .count-badge {
+                font-size: 10px;
+                color: #666;
+                background: #2a2a2a;
+                padding: 1px 6px;
+                border-radius: 4px;
+            }
+            .info-text {
+                padding: 14px 24px;
+                color: #666;
+                font-size: 12px;
+            }
+            .info-text a {
+                color: #888;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="refresh-bar"></div>
+        <header>
+            <h1>⬡ Tablet Modifiers Reference</h1>
+            <span id="status">Static Data</span>
+        </header>
+
+        <div class="top-nav">
+            <a href="/">Home</a>
+            <a href="/dashboard">Main Dashboard</a>
+            <a href="/normal-prices">Normal Prices</a>
+            <a href="/modifiers" class="active">Modifiers</a>
+        </div>
+
+        <div class="filter-bar">
+            <input type="text" id="filter-input" placeholder="Filter modifiers..." />
+        </div>
+
+        <div class="info-text">
+            Data source: <a href="https://www.poe2wiki.net/wiki/List_of_modifiers_for_tablets" target="_blank">PoE2 Wiki</a>
+            | Showing all suffixes (and prefixes) per tablet type
+        </div>
+
+        <div class="tablet-grid" id="tablet-grid">
+            <!-- Populated by JavaScript -->
+        </div>
+
+        <script>
+            const API = window.location.origin || "http://localhost:8001";
+            let allData = [];
+
+            async function loadData() {
+                try {
+                    const res = await fetch(`${API}/api/reports/mod-reference`);
+                    if (res.ok) {
+                        allData = await res.json();
+                        renderTablets();
+                    }
+                } catch (e) {
+                    console.error("Failed to load data:", e);
+                }
+            }
+
+            function renderTablets() {
+                const grid = document.getElementById("tablet-grid");
+                grid.innerHTML = allData.map(tablet => {
+                    const totalSuffixes = Object.values(tablet.suffix_groups || {}).reduce(
+                        (sum, mods) => sum + mods.length, 0
+                    );
+                    const totalPrefixes = 12; // All tablets have the same 12 prefixes
+
+                    const suffixGroups = tablet.suffix_groups || {};
+                    const htmlGroups = Object.entries(suffixGroups).map(([group, mods]) => {
+                        const isPrefix = group.startsWith("Map") && !group.includes("Additional");
+                        const labelClass = isPrefix ? "prefix-label" : "suffix-label";
+                        const labelText = isPrefix ? "Prefix" : "Suffix";
+                        return `
+                            <div class="mod-group">
+                                <div class="mod-group-title">
+                                    <span class="${labelClass}">${labelText}</span>
+                                    ${group}
+                                </div>
+                                ${mods.map(m => `<div class="mod-item">${m}</div>`).join("")}
+                            </div>
+                        `;
+                    }).join("");
+
+                    return `
+                        <div class="tablet-card">
+                            <h3 data-tablet="${tablet.tablet_type}" class="">
+                                ${tablet.tablet_type}
+                                <span class="count-badge">${totalSuffixes + totalPrefixes} modifiers</span>
+                            </h3>
+                            <div class="mod-list">
+                                ${htmlGroups}
+                            </div>
+                        </div>
+                    `;
+                }).join("");
+
+                // Add click handlers
+                grid.querySelectorAll(".tablet-card h3").forEach(h3 => {
+                    h3.addEventListener("click", () => {
+                        h3.classList.toggle("expanded");
+                        const modList = h3.nextElementSibling;
+                        modList.classList.toggle("expanded");
+                    });
+                });
+
+                // Add filter functionality
+                const filterInput = document.getElementById("filter-input");
+                filterInput.addEventListener("input", (e) => {
+                    const query = e.target.value.toLowerCase();
+                    grid.querySelectorAll(".mod-item").forEach(item => {
+                        const visible = item.textContent.toLowerCase().includes(query);
+                        item.style.display = visible ? "block" : "none";
+                    });
+                });
+            }
+
+            loadData();
+        </script>
+    </body>
+</html>

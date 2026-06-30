@@ -308,3 +308,23 @@ def league_info() -> dict:
             for l in all_leagues
         ],
     }
+
+
+@app.get("/api/reports/mod-reference")
+def api_mod_reference() -> list[dict]:
+    """Get all tablet modifier suffixes - summary by tablet type."""
+    return report_builder.mod_reference()
+
+
+@app.get("/api/reports/mod-reference/{tablet_type}")
+def api_mod_reference_detail(tablet_type: str) -> dict:
+    """Get detailed modifiers (prefixes and suffixes) for a specific tablet type."""
+    return report_builder.mod_reference_detail(tablet_type)
+
+
+@app.get("/modifiers")
+def modifiers_dashboard() -> FileResponse:
+    path = STATIC_DIR / "modifiers.html"
+    if not path.is_file():
+        raise HTTPException(status_code=404, detail="modifiers.html not found")
+    return FileResponse(path)

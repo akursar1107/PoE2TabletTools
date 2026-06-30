@@ -474,3 +474,22 @@ def time_based_patterns(league_id: int) -> list[dict]:
             (league_id, MAX_DIV, floor),
         ).fetchall()
     )
+
+
+def mod_reference() -> list[dict]:
+    """
+    Get all tablet modifier suffixes organized by tablet type.
+    Static data from wiki - does not require league_id.
+    """
+    from poe_tablet_tool.modifiers_data import get_suffixes_summary
+
+    return get_suffixes_summary()
+
+
+def mod_reference_detail(tablet_type: str) -> dict:
+    """
+    Get detailed modifiers (prefixes and suffixes) for a specific tablet type.
+    """
+    from poe_tablet_tool.modifiers_data import get_modifiers_by_tablet
+
+    return get_modifiers_by_tablet(tablet_type) or {"error": "Tablet type not found"}
