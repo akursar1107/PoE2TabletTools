@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <title>PoE2 Tablet Tool - Home</title>
+        <style>
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+            body {
+                background: #0e0e0e;
+                color: #c9b99a;
+                font-family: "Segoe UI", sans-serif;
+                font-size: 13px;
+                min-height: 100vh;
+            }
+            header {
+                padding: 14px 24px;
+                border-bottom: 1px solid #2a2a2a;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+            header h1 {
+                font-size: 17px;
+                color: #e8d5a3;
+                letter-spacing: 1px;
+            }
+            #status {
+                font-size: 12px;
+                color: #666;
+            }
+            #status.ok {
+                color: #5a9e5a;
+            }
+            .nav-bar {
+                padding: 24px;
+            }
+            .nav-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                gap: 16px;
+                max-width: 800px;
+                margin: 0 auto;
+            }
+            .nav-card {
+                background: #141414;
+                border: 1px solid #2a2a2a;
+                border-radius: 6px;
+                padding: 24px;
+                text-decoration: none;
+                color: #c9b99a;
+                transition:
+                    border-color 0.2s,
+                    box-shadow 0.2s;
+                display: block;
+            }
+            .nav-card:hover {
+                border-color: #a08050;
+                box-shadow: 0 0 12px rgba(160, 128, 80, 0.15);
+            }
+            .nav-card h2 {
+                font-size: 14px;
+                color: #a08050;
+                margin-bottom: 6px;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+            }
+            .nav-card p {
+                font-size: 12px;
+                color: #888;
+                line-height: 1.5;
+            }
+            .nav-icon {
+                font-size: 24px;
+                margin-bottom: 12px;
+            }
+            footer {
+                padding: 24px;
+                border-top: 1px solid #2a2a2a;
+                text-align: center;
+                color: #555;
+                font-size: 11px;
+            }
+            footer a {
+                color: #888;
+                text-decoration: none;
+            }
+            footer a:hover {
+                color: #c8a96e;
+            }
+            .version {
+                font-size: 11px;
+                color: #555;
+                margin-left: 14px;
+            }
+            .top-nav {
+                background: #1a1a1a;
+                border-bottom: 1px solid #2a2a2a;
+                padding: 8px 24px;
+                display: flex;
+                gap: 24px;
+            }
+            .top-nav a {
+                color: #888;
+                text-decoration: none;
+                font-size: 12px;
+                padding: 4px 8px;
+                border-radius: 4px;
+                transition: all 0.2s;
+            }
+            .top-nav a:hover {
+                color: #c8a96e;
+                background: #2a2a2a;
+            }
+            .top-nav a.active {
+                color: #c8a96e;
+                background: #2a2a2a;
+            }
+        </style>
+    </head>
+    <body>
+        <header>
+            <h1>⬡ PoE2 Tablet Market Intelligence</h1>
+            <div>
+                <span id="status">Loading...</span>
+                <span class="version">v0.2.0</span>
+            </div>
+        </header>
+
+        <div class="top-nav">
+            <a href="/" class="active">Home</a>
+            <a href="/dashboard">Main Dashboard</a>
+            <a href="/normal-prices">Normal Prices</a>
+        </div>
+
+        <div class="nav-bar">
+            <div class="nav-grid">
+                <a href="/dashboard" class="nav-card">
+                    <div class="nav-icon">📊</div>
+                    <h2>Main Dashboard</h2>
+                    <p>
+                        Affix analysis, price distributions, velocity tracking,
+                        and buy signals across all tablet types.
+                    </p>
+                </a>
+
+                <a href="/normal-prices" class="nav-card">
+                    <div class="nav-icon">💰</div>
+                    <h2>Normal (0-Mod) Prices</h2>
+                    <p>
+                        Track base tablet prices without mods. Perfect for
+                        crafting cost basis calculations.
+                    </p>
+                </a>
+
+                <a href="/api/health" class="nav-card">
+                    <div class="nav-icon">❤️</div>
+                    <h2>System Health</h2>
+                    <p>
+                        Monitor job status, snapshot counts, and league
+                        information.
+                    </p>
+                </a>
+            </div>
+        </div>
+
+        <footer>
+            <p>
+                <a href="/api">API Documentation</a> |
+                <a href="https://github.com" target="_blank">GitHub</a>
+            </p>
+            <p style="margin-top: 8px">
+                Data updates every 60 minutes per tablet type
+            </p>
+        </footer>
+
+        <script>
+            const API = window.location.origin || "http://localhost:8001";
+            const INTERVAL = 60;
+
+            async function updateStatus() {
+                try {
+                    const res = await fetch(`${API}/api/health`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        const jobs = data.jobs || [];
+                        const active = jobs.filter(
+                            (j) => j.last_success_at,
+                        ).length;
+                        document.getElementById("status").textContent =
+                            `✓ ${active}/${jobs.length} jobs active`;
+                        document.getElementById("status").className = "ok";
+                    }
+                } catch (e) {
+                    document.getElementById("status").textContent = "✗ Offline";
+                    document.getElementById("status").className = "";
+                }
+            }
+
+            updateStatus();
+            setInterval(updateStatus, 30000);
+        </script>
+    </body>
+</html>

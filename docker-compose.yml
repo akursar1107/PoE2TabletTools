@@ -1,0 +1,10 @@
+services:
+  poe-tablet-tool:
+    build: .
+    env_file: .env
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    ports:
+      - "${API_PORT:-8001}:8001"
+    restart: unless-stopped

@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <title>PoE2 Normal Tablet Prices</title>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+        <style>
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+            body {
+                background: #0e0e0e;
+                color: #c9b99a;
+                font-family: "Segoe UI", sans-serif;
+                font-size: 13px;
+            }
+            header {
+                padding: 14px 24px;
+                border-bottom: 1px solid #2a2a2a;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+            header h1 {
+                font-size: 17px;
+                color: #e8d5a3;
+                letter-spacing: 1px;
+            }
+            .top-nav {
+                background: #1a1a1a;
+                border-bottom: 1px solid #2a2a2a;
+                padding: 8px 24px;
+                display: flex;
+                gap: 24px;
+            }
+            .top-nav a {
+                color: #888;
+                text-decoration: none;
+                font-size: 12px;
+                padding: 4px 8px;
+                border-radius: 4px;
+                transition: all 0.2s;
+            }
+            .top-nav a:hover {
+                color: #c8a96e;
+                background: #2a2a2a;
+            }
+            .top-nav a.active {
+                color: #c8a96e;
+                background: #2a2a2a;
+            }
+            #status {
+                font-size: 12px;
+                color: #666;
+            }
+            #status.ok {
+                color: #5a9e5a;
+            }
+            #refresh-bar {
+                height: 2px;
+                background: #a08050;
+                transition: width 0.5s linear;
+                width: 100%;
+            }
+            .grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 14px;
+                padding: 14px;
+            }
+            .full {
+                grid-column: 1 / -1;
+            }
+            .panel {
+                background: #141414;
+                border: 1px solid #2a2a2a;
+                border-radius: 6px;
+                overflow: hidden;
+            }
+            .panel h2 {
+                padding: 9px 14px;
+                font-size: 12px;
+                color: #a08050;
+                background: #1a1a1a;
+                border-bottom: 1px solid #2a2a2a;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+            }
+            table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+            th {
+                padding: 5px 10px;
+                text-align: left;
+                font-size: 11px;
+                color: #555;
+                text-transform: uppercase;
+                border-bottom: 1px solid #222;
+            }
+            td {
+                padding: 5px 10px;
+                border-bottom: 1px solid #1a1a1a;
+            }
+            tr:last-child td {
+                border-bottom: none;
+            }
+            tr:hover td {
+                background: #1c1c1c;
+            }
+            .type {
+                color: #7a9e7a;
+            }
+            .num {
+                color: #8ab4e8;
+                text-align: right;
+                font-variant-numeric: tabular-nums;
+            }
+            .price {
+                color: #c3a832;
+                text-align: right;
+                font-variant-numeric: tabular-nums;
+            }
+            .chart-wrap {
+                padding: 12px;
+            }
+            canvas {
+                max-height: 280px;
+            }
+            .back-link {
+                display: inline-block;
+                padding: 6px 12px;
+                color: #888;
+                text-decoration: none;
+                font-size: 12px;
+            }
+            .back-link:hover {
+                color: #c8a96e;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="refresh-bar"></div>
+        <header>
+            <h1>⬡ Normal (0-Mod) Tablet Prices</h1>
+            <span id="status">Loading…</span>
+        </header>
+
+        <div class="top-nav">
+            <a href="/">Home</a>
+            <a href="/dashboard">Main Dashboard</a>
+            <a href="/normal-prices" class="active">Normal Prices</a>
+        </div>
+
+        <div class="grid">
+            <div class="panel full">
+                <h2>Current Prices by Tablet Type</h2>
+                <table id="tbl-prices">
+                    <thead>
+                        <tr>
+                            <th>Tablet Type</th>
+                            <th style="text-align: right">Count</th>
+                            <th style="text-align: right">Min div</th>
+                            <th style="text-align: right">Max div</th>
+                            <th style="text-align: right">Avg div</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+
+            <div class="panel full">
+                <h2>Price History Over Time</h2>
+                <div class="chart-wrap">
+                    <canvas id="chart-history"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            const API = window.location.origin || "http://localhost:8001";
+            const INTERVAL = 60;
+            let countdown = INTERVAL;
+            let historyChart = null;
+
+            const COLORS = [
+                "#c8a96e",
+                "#8ab4e8",
+                "#7a9e7a",
+                "#cc9966",
+                "#a870a8",
+                "#70a8a8",
+                "#e87878",
+                "#a8a870",
+            ];
+            const TABLET_COLORS = {
+                ritual: "#c8a96e",
+                breach: "#8ab4e8",
+                abyss: "#7a9e7a",
+                delirium: "#a870a8",
+                overseer: "#cc9966",
+                irradiated: "#e87878",
+                temple: "#70a8a8",
+                expedition: "#a8a870",
+            };
+
+            function fmt(v, d = 2) {
+                if (v === null || v === undefined) return "—";
+                return parseFloat(v).toFixed(d);
+            }
+
+            function renderTable(id, rows, cols) {
+                const tb = document.querySelector(`#${id} tbody`);
+                if (!rows || rows.length === 0) {
+                    tb.innerHTML =
+                        '<tr><td colspan="5" style="color:#555">No data yet</td></tr>';
+                    return;
+                }
+                tb.innerHTML = rows
+                    .map(
+                        (r) =>
+                            "<tr>" + cols.map((c) => c(r)).join("") + "</tr>",
+                    )
+                    .join("");
+            }
+
+            async function refresh() {
+                try {
+                    const res = await fetch(`${API}/api/reports/normal-prices`);
+                    if (!res.ok) throw new Error(await res.text());
+                    const data = await res.json();
+
+                    // Current prices table
+                    const prices = data.prices || [];
+                    renderTable("tbl-prices", prices, [
+                        (r) => `<td class="type">${r.tablet_type}</td>`,
+                        (r) => `<td class="num">${r.count}</td>`,
+                        (r) => `<td class="price">${fmt(r.min_div)}</td>`,
+                        (r) => `<td class="price">${fmt(r.max_div)}</td>`,
+                        (r) => `<td class="price">${fmt(r.avg_div)}</td>`,
+                    ]);
+
+                    // Price history chart
+                    const history = data.history || [];
+                    const types = [
+                        ...new Set(history.map((r) => r.tablet_type)),
+                    ];
+                    const timestamps = [
+                        ...new Set(history.map((r) => r.ts)),
+                    ].sort();
+
+                    const historyDatasets = types.map((t, i) => ({
+                        label: t,
+                        data: timestamps.map((ts) => {
+                            const item = history.find(
+                                (r) => r.ts === ts && r.tablet_type === t,
+                            );
+                            return item ? parseFloat(item.avg_div) : null;
+                        }),
+                        borderColor:
+                            TABLET_COLORS[t] || COLORS[i % COLORS.length],
+                        backgroundColor: "transparent",
+                        tension: 0.3,
+                        spanGaps: true,
+                        pointRadius: 3,
+                    }));
+
+                    if (historyChart) historyChart.destroy();
+                    if (timestamps.length > 0) {
+                        historyChart = new Chart(
+                            document.getElementById("chart-history"),
+                            {
+                                type: "line",
+                                data: {
+                                    labels: timestamps,
+                                    datasets: historyDatasets,
+                                },
+                                options: {
+                                    responsive: true,
+                                    plugins: {
+                                        legend: {
+                                            labels: {
+                                                color: "#888",
+                                                boxWidth: 12,
+                                            },
+                                        },
+                                        tooltip: {
+                                            callbacks: {
+                                                label: function (context) {
+                                                    return (
+                                                        context.dataset.label +
+                                                        ": " +
+                                                        fmt(context.parsed.y) +
+                                                        " div"
+                                                    );
+                                                },
+                                            },
+                                        },
+                                    },
+                                    scales: {
+                                        x: {
+                                            ticks: {
+                                                color: "#555",
+                                                maxTicksLimit: 12,
+                                            },
+                                            grid: { color: "#1e1e1e" },
+                                        },
+                                        y: {
+                                            ticks: { color: "#888" },
+                                            grid: { color: "#1e1e1e" },
+                                        },
+                                    },
+                                },
+                            },
+                        );
+                    }
+
+                    document.getElementById("status").textContent =
+                        `Updated ${new Date().toLocaleTimeString()} · refreshes in ${INTERVAL}s`;
+                    document.getElementById("status").className = "ok";
+                } catch (e) {
+                    document.getElementById("status").textContent =
+                        `Error: ${e.message}`;
+                    document.getElementById("status").className = "";
+                }
+            }
+
+            function tick() {
+                countdown--;
+                document.getElementById("refresh-bar").style.width =
+                    (countdown / INTERVAL) * 100 + "%";
+                if (countdown <= 0) {
+                    countdown = INTERVAL;
+                    refresh();
+                }
+            }
+
+            refresh();
+            setInterval(tick, 1000);
+        </script>
+    </body>
+</html>

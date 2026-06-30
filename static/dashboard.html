@@ -1,0 +1,537 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <title>PoE2 Tablet Market</title>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+        <style>
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+            body {
+                background: #0e0e0e;
+                color: #c9b99a;
+                font-family: "Segoe UI", sans-serif;
+                font-size: 13px;
+            }
+            header {
+                padding: 14px 24px;
+                border-bottom: 1px solid #2a2a2a;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+            header h1 {
+                font-size: 17px;
+                color: #e8d5a3;
+                letter-spacing: 1px;
+            }
+            #status {
+                font-size: 12px;
+                color: #666;
+            }
+            #status.ok {
+                color: #5a9e5a;
+            }
+            #refresh-bar {
+                height: 2px;
+                background: #a08050;
+                transition: width 0.5s linear;
+                width: 100%;
+            }
+            .top-nav {
+                background: #1a1a1a;
+                border-bottom: 1px solid #2a2a2a;
+                padding: 8px 24px;
+                display: flex;
+                gap: 24px;
+            }
+            .top-nav a {
+                color: #888;
+                text-decoration: none;
+                font-size: 12px;
+                padding: 4px 8px;
+                border-radius: 4px;
+                transition: all 0.2s;
+            }
+            .top-nav a:hover {
+                color: #c8a96e;
+                background: #2a2a2a;
+            }
+            .top-nav a.active {
+                color: #c8a96e;
+                background: #2a2a2a;
+            }
+            .grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 14px;
+                padding: 14px;
+            }
+            .full {
+                grid-column: 1 / -1;
+            }
+            .panel {
+                background: #141414;
+                border: 1px solid #2a2a2a;
+                border-radius: 6px;
+                overflow: hidden;
+            }
+            .panel h2 {
+                padding: 9px 14px;
+                font-size: 12px;
+                color: #a08050;
+                background: #1a1a1a;
+                border-bottom: 1px solid #2a2a2a;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+            }
+            table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+            th {
+                padding: 5px 10px;
+                text-align: left;
+                font-size: 11px;
+                color: #555;
+                text-transform: uppercase;
+                border-bottom: 1px solid #222;
+            }
+            td {
+                padding: 5px 10px;
+                border-bottom: 1px solid #1a1a1a;
+            }
+            tr:last-child td {
+                border-bottom: none;
+            }
+            tr:hover td {
+                background: #1c1c1c;
+            }
+            .mod {
+                color: #c8a96e;
+            }
+            .num {
+                color: #8ab4e8;
+                text-align: right;
+                font-variant-numeric: tabular-nums;
+            }
+            .price {
+                color: #c3a832;
+                text-align: right;
+                font-variant-numeric: tabular-nums;
+            }
+            .pct {
+                text-align: right;
+                font-variant-numeric: tabular-nums;
+            }
+            .type {
+                color: #7a9e7a;
+            }
+            .slot-prefix {
+                color: #6699cc;
+                font-size: 11px;
+            }
+            .slot-suffix {
+                color: #cc9966;
+                font-size: 11px;
+            }
+            .regex {
+                font-family: monospace;
+                font-size: 11px;
+                color: #9ec89e;
+                word-break: break-all;
+            }
+            .chart-wrap {
+                padding: 12px;
+            }
+            canvas {
+                max-height: 220px;
+            }
+            .pct-bar-wrap {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                justify-content: flex-end;
+            }
+            .pct-bar {
+                height: 8px;
+                border-radius: 4px;
+                background: #c3a832;
+                min-width: 2px;
+            }
+            .pair {
+                color: #c8a96e;
+                font-size: 12px;
+            }
+            .pair span {
+                color: #888;
+                font-size: 11px;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="refresh-bar"></div>
+        <header>
+            <h1>⬡ PoE2 Tablet Market Intelligence</h1>
+            <span id="status">Loading…</span>
+            <span
+                id="last-updated"
+                style="font-size: 11px; color: #666; margin-left: 14px"
+            ></span>
+        </header>
+
+        <div class="top-nav">
+            <a href="/">Home</a>
+            <a href="/dashboard" class="active">Main Dashboard</a>
+            <a href="/normal-prices">Normal Prices</a>
+        </div>
+
+        <div class="grid">
+            <div class="panel full">
+                <h2>Top Affixes by Frequency</h2>
+                <table id="tbl-freq">
+                    <thead>
+                        <tr>
+                            <th>Mod Family</th>
+                            <th>Slot</th>
+                            <th>Type</th>
+                            <th style="text-align: right">Count</th>
+                            <th style="text-align: right">Avg div</th>
+                            <th style="text-align: right">Range</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="panel">
+                <h2>Highest Avg Price by Affix</h2>
+                <table id="tbl-price">
+                    <thead>
+                        <tr>
+                            <th>Mod Family</th>
+                            <th style="text-align: right">Avg div</th>
+                            <th style="text-align: right">Range</th>
+                            <th style="text-align: right">n</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="panel">
+                <h2>Likely-Sold Velocity (lift proxy)</h2>
+                <table id="tbl-velocity">
+                    <thead>
+                        <tr>
+                            <th>Mod Family</th>
+                            <th>Type</th>
+                            <th style="text-align: right">% sold</th>
+                            <th style="text-align: right">Avg div</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="panel full">
+                <h2>Avg Price Over Time (rare)</h2>
+                <div class="chart-wrap"><canvas id="chart-time"></canvas></div>
+            </div>
+            <div class="panel">
+                <h2>Price Distribution by Type</h2>
+                <div class="chart-wrap"><canvas id="chart-dist"></canvas></div>
+            </div>
+            <div class="panel">
+                <h2>Top Affix Combos</h2>
+                <table id="tbl-combo">
+                    <thead>
+                        <tr>
+                            <th>Mod A + Mod B</th>
+                            <th>Type</th>
+                            <th style="text-align: right">n</th>
+                            <th style="text-align: right">Avg div</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="panel">
+                <h2>Buy Signals (project craft)</h2>
+                <table id="tbl-buy">
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th style="text-align: right">Buy</th>
+                            <th style="text-align: right">Rare med</th>
+                            <th style="text-align: right">Profit</th>
+                            <th style="text-align: right">Junk</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="panel full">
+                <h2>Stash Regex</h2>
+                <table id="tbl-regex">
+                    <thead>
+                        <tr>
+                            <th>Mode</th>
+                            <th>Label</th>
+                            <th>Regex</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <script>
+            const API = window.location.origin || "http://localhost:8001";
+            const INTERVAL = 30;
+            let countdown = INTERVAL;
+            let timeChart = null,
+                distChart = null;
+
+            const COLORS = [
+                "#c8a96e",
+                "#8ab4e8",
+                "#7a9e7a",
+                "#cc9966",
+                "#a870a8",
+                "#70a8a8",
+                "#e87878",
+                "#a8a870",
+            ];
+            const TABLET_COLORS = {
+                ritual: "#c8a96e",
+                breach: "#8ab4e8",
+                abyss: "#7a9e7a",
+                delirium: "#a870a8",
+                overseer: "#cc9966",
+                irradiated: "#e87878",
+                temple: "#70a8a8",
+                expedition: "#a8a870",
+            };
+
+            function strip(t) {
+                return (t || "")
+                    .replace(/\[([^|]+)\|([^\]]+)\]/g, "$2")
+                    .replace(/\[[^\]]+\]/g, "")
+                    .replace(/\s+/g, " ")
+                    .trim();
+            }
+            function fmt(v, d = 1) {
+                return v == null ? "—" : parseFloat(v).toFixed(d);
+            }
+
+            function renderTable(id, rows, cols) {
+                const tb = document.querySelector(`#${id} tbody`);
+                tb.innerHTML = rows.length
+                    ? rows
+                          .map(
+                              (r) =>
+                                  "<tr>" +
+                                  cols.map((c) => c(r)).join("") +
+                                  "</tr>",
+                          )
+                          .join("")
+                    : '<tr><td colspan="6" style="color:#555">No data yet</td></tr>';
+            }
+
+            async function refresh() {
+                try {
+                    const res = await fetch(`${API}/api/reports/summary`);
+                    if (!res.ok) throw new Error(await res.text());
+                    const data = await res.json();
+
+                    renderTable("tbl-freq", data.affix_frequency, [
+                        (r) => `<td class="mod">${strip(r.mod_family)}</td>`,
+                        (r) =>
+                            `<td><span class="slot-${r.slot}">${r.slot}</span></td>`,
+                        (r) => `<td class="type">${r.tablet_type}</td>`,
+                        (r) => `<td class="num">${r.n}</td>`,
+                        (r) => `<td class="price">${fmt(r.avg_div)}</td>`,
+                        (r) =>
+                            `<td class="range">${fmt(r.min_div, 0)}–${fmt(r.max_div, 0)}</td>`,
+                    ]);
+
+                    renderTable("tbl-price", data.affix_price, [
+                        (r) => `<td class="mod">${strip(r.mod_family)}</td>`,
+                        (r) => `<td class="price">${fmt(r.avg_div)}</td>`,
+                        (r) =>
+                            `<td class="range">${fmt(r.min_div, 0)}–${fmt(r.max_div, 0)}</td>`,
+                        (r) => `<td class="num">${r.n}</td>`,
+                    ]);
+
+                    const velocity = data.affix_velocity || [];
+                    const maxPct = Math.max(
+                        ...velocity.map((r) => r.pct || 0),
+                        1,
+                    );
+                    renderTable("tbl-velocity", velocity, [
+                        (r) => `<td class="mod">${strip(r.mod_family)}</td>`,
+                        (r) => `<td class="type">${r.tablet_type}</td>`,
+                        (r) =>
+                            `<td class="pct"><div class="pct-bar-wrap"><span>${r.pct}%</span><div class="pct-bar" style="width:${Math.round((r.pct / maxPct) * 60)}px"></div></div></td>`,
+                        (r) => `<td class="price">${fmt(r.avg_div)}</td>`,
+                    ]);
+
+                    const timeData = data.price_over_time || [];
+                    const types = [
+                        ...new Set(timeData.map((r) => r.tablet_type)),
+                    ];
+                    const snaps = [...new Set(timeData.map((r) => r.ts))];
+                    const timeDatasets = types.map((t, i) => ({
+                        label: t,
+                        data: snaps.map(
+                            (ts) =>
+                                (
+                                    timeData.find(
+                                        (r) =>
+                                            r.ts === ts && r.tablet_type === t,
+                                    ) || {}
+                                ).avg_div ?? null,
+                        ),
+                        borderColor:
+                            TABLET_COLORS[t] || COLORS[i % COLORS.length],
+                        backgroundColor: "transparent",
+                        tension: 0.3,
+                        spanGaps: true,
+                        pointRadius: 3,
+                    }));
+                    if (timeChart) timeChart.destroy();
+                    timeChart = new Chart(
+                        document.getElementById("chart-time"),
+                        {
+                            type: "line",
+                            data: { labels: snaps, datasets: timeDatasets },
+                            options: {
+                                responsive: true,
+                                plugins: {
+                                    legend: {
+                                        labels: { color: "#888", boxWidth: 12 },
+                                    },
+                                },
+                                scales: {
+                                    x: {
+                                        ticks: {
+                                            color: "#555",
+                                            maxTicksLimit: 10,
+                                        },
+                                        grid: { color: "#1e1e1e" },
+                                    },
+                                    y: {
+                                        ticks: { color: "#888" },
+                                        grid: { color: "#1e1e1e" },
+                                    },
+                                },
+                            },
+                        },
+                    );
+
+                    const distData = data.price_distribution || [];
+                    const buckets = ["50-100", "100-200", "200-500", "500+"];
+                    const distTypes = [
+                        ...new Set(distData.map((r) => r.tablet_type)),
+                    ];
+                    const distDatasets = distTypes.map((t, i) => ({
+                        label: t,
+                        data: buckets.map(
+                            (b) =>
+                                (
+                                    distData.find(
+                                        (r) =>
+                                            r.tablet_type === t &&
+                                            r.bucket === b,
+                                    ) || {}
+                                ).n || 0,
+                        ),
+                        backgroundColor:
+                            (TABLET_COLORS[t] || COLORS[i % COLORS.length]) +
+                            "aa",
+                        borderColor:
+                            TABLET_COLORS[t] || COLORS[i % COLORS.length],
+                        borderWidth: 1,
+                    }));
+                    if (distChart) distChart.destroy();
+                    distChart = new Chart(
+                        document.getElementById("chart-dist"),
+                        {
+                            type: "bar",
+                            data: { labels: buckets, datasets: distDatasets },
+                            options: {
+                                responsive: true,
+                                plugins: {
+                                    legend: {
+                                        labels: { color: "#888", boxWidth: 12 },
+                                    },
+                                },
+                                scales: {
+                                    x: {
+                                        ticks: { color: "#888" },
+                                        grid: { color: "#1e1e1e" },
+                                    },
+                                    y: {
+                                        ticks: { color: "#888" },
+                                        grid: { color: "#1e1e1e" },
+                                    },
+                                },
+                            },
+                        },
+                    );
+
+                    renderTable("tbl-combo", data.affix_combos, [
+                        (r) =>
+                            `<td class="pair">${strip(r.mod_a)}<br><span>+ ${strip(r.mod_b)}</span></td>`,
+                        (r) => `<td class="type">${r.tablet_type}</td>`,
+                        (r) => `<td class="num">${r.n}</td>`,
+                        (r) => `<td class="price">${fmt(r.avg_div)}</td>`,
+                    ]);
+
+                    renderTable("tbl-buy", data.buy_signals || [], [
+                        (r) => `<td class="type">${r.tablet_type}</td>`,
+                        (r) =>
+                            `<td class="price">${fmt(r.magic_buy_price_div)}</td>`,
+                        (r) =>
+                            `<td class="price">${fmt(r.rare_median_price_div)}</td>`,
+                        (r) =>
+                            `<td class="price">${fmt(r.expected_profit_div)}</td>`,
+                        (r) =>
+                            `<td class="num">${fmt(r.junk_rate * 100, 0)}%</td>`,
+                    ]);
+
+                    renderTable("tbl-regex", data.regex_outputs || [], [
+                        (r) => `<td class="type">${r.regex_mode}</td>`,
+                        (r) => `<td>${r.label}</td>`,
+                        (r) => `<td class="regex">${r.regex_text}</td>`,
+                    ]);
+
+                    const now = new Date();
+                    document.getElementById("status").textContent =
+                        `Updated ${now.toLocaleTimeString()} · refreshes in ${INTERVAL}s`;
+                    document.getElementById("last-updated").textContent =
+                        `Data as of: ${now.toLocaleString()}`;
+                    document.getElementById("status").className = "ok";
+                } catch (e) {
+                    document.getElementById("status").textContent =
+                        `Error: ${e.message}`;
+                    document.getElementById("status").className = "";
+                }
+            }
+
+            function tick() {
+                countdown--;
+                document.getElementById("refresh-bar").style.width =
+                    (countdown / INTERVAL) * 100 + "%";
+                if (countdown <= 0) {
+                    countdown = INTERVAL;
+                    refresh();
+                }
+            }
+
+            refresh();
+            setInterval(tick, 1000);
+        </script>
+    </body>
+</html>

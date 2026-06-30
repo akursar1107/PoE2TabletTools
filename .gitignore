@@ -1,0 +1,42 @@
+# Environment and secrets
+.env
+.env.local
+
+# Local data and logs
+data/
+logs/
+
+# Python
+__pycache__/
+*.egg-info/
+*.pyc
+*.pyo
+*.pyd
+
+# Databases
+*.db
+*.db-shm
+*.db-wal
+
+# Build and distribution
+dist/
+build/
+
+# Editor/IDE
+.idea/
+.vscode/
+.cursor/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# OS
+.DS_Store
+Thumbs.db

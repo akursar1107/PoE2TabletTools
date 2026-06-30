@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "poe-tablet-tool"
+version = "0.2.0"
+requires-python = ">=3.11"
+dependencies = [
+    "httpx>=0.28",
+    "pydantic-settings>=2.0",
+    "apscheduler>=3.10",
+    "fastapi>=0.115",
+    "uvicorn>=0.32",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+]
+
+[project.scripts]
+poe-tablet-tool = "poe_tablet_tool.scheduler:main"
+poe-tablet-api = "poe_tablet_tool.api:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["poe_tablet_tool*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
