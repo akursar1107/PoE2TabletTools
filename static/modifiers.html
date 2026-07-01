@@ -757,6 +757,33 @@
 
             loadData().then(populateCategories);
 
+            // Keyboard shortcuts
+            document.addEventListener("keydown", (e) => {
+                if (
+                    e.target.tagName !== "INPUT" &&
+                    e.target.tagName !== "SELECT" &&
+                    e.key === "/"
+                ) {
+                    e.preventDefault();
+                    document.getElementById("global-filter-input").focus();
+                }
+                if (e.key === "Escape") {
+                    document.getElementById("filter-input").value = "";
+                    document.getElementById("global-filter-input").value = "";
+                    document.getElementById("category-filter").value = "";
+                    document
+                        .getElementById("filter-input")
+                        .dispatchEvent(new Event("input"));
+                    document
+                        .getElementById("global-filter-input")
+                        .dispatchEvent(new Event("input"));
+                    document
+                        .getElementById("category-filter")
+                        .dispatchEvent(new Event("change"));
+                    window.location.hash = "";
+                }
+            });
+
             // Copy to clipboard functionality
             function showCopiedNotification() {
                 let notification = document.getElementById(
