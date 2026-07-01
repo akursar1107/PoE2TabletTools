@@ -318,9 +318,9 @@
 
             function renderTable(id, rows, cols) {
                 const tb = document.querySelector(`#${id} tbody`);
+                const colCount = cols.length;
                 if (!rows || rows.length === 0) {
-                    tb.innerHTML =
-                        '<tr><td colspan="5" style="color:#555">No data yet</td></tr>';
+                    tb.innerHTML = `<tr><td colspan="${colCount}" style="color:#555; text-align:center; padding:20px;">No data available yet</td></tr>`;
                     return;
                 }
                 tb.innerHTML = rows
@@ -441,6 +441,21 @@
 
             function showError(message) {
                 console.error(message);
+                // Display error in panels
+                const panels = document.querySelectorAll(".panel");
+                panels.forEach((panel) => {
+                    const existingEmpty = panel.querySelector(".empty-state");
+                    if (!existingEmpty) {
+                        const emptyState = document.createElement("div");
+                        emptyState.className = "empty-state";
+                        emptyState.innerHTML = `
+                            <div class="empty-state-icon">⚠️</div>
+                            <div>${message}</div>
+                            <button onclick="refresh()" style="margin-top: 16px; padding: 8px 16px; background: #1a1a1a; border: 1px solid #a08050; color: #c8a96e; border-radius: 4px; cursor: pointer;">Retry</button>
+                        `;
+                        panel.appendChild(emptyState);
+                    }
+                });
             }
 
             function tick() {

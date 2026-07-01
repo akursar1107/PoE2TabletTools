@@ -401,6 +401,33 @@
                 margin-bottom: 12px;
                 opacity: 0.5;
             }
+            .mod-item.rare {
+                border-left-color: #a08050;
+                background: rgba(160, 128, 80, 0.05);
+            }
+            .mod-item.rare:hover {
+                background: rgba(160, 128, 80, 0.1);
+            }
+            .rarity-badge {
+                display: inline-block;
+                font-size: 10px;
+                padding: 1px 4px;
+                border-radius: 2px;
+                margin-left: 6px;
+                font-weight: bold;
+            }
+            .rarity-common {
+                color: #777;
+            }
+            .rarity-uncommon {
+                color: #999;
+            }
+            .rarity-rare {
+                color: #ffcc00;
+            }
+            .rarity-unique {
+                color: #ff6600;
+            }
             .tooltip {
                 position: relative;
             }
@@ -732,8 +759,20 @@
                                             )
                                                 ? "favorited"
                                                 : "";
+                                            const rareCategories = [
+                                                "Boss",
+                                                "Abyss",
+                                                "Breach",
+                                                "Delirium",
+                                            ];
+                                            const isRare =
+                                                rareCategories.includes(
+                                                    category,
+                                                )
+                                                    ? "rare"
+                                                    : "";
                                             return `
-                                    <div class="mod-item" data-mod-name="${m.name}" data-mod-desc="${m.description}" data-tablet="${tabletType}" data-group="${group}">
+                                    <div class="mod-item ${isRare}" data-mod-name="${m.name}" data-mod-desc="${m.description}" data-tablet="${tabletType}" data-group="${group}">
                                         <strong class="copy-text" title="Click to copy">${renderTextWithHighlight(m.name)}</strong>
                                         <span class="mod-description"> - ${renderTextWithHighlight(m.description)}</span>
                                         <span class="fav-star ${favorited}" data-tooltip="Click to favorite" onclick="toggleFavoriteFromEvent(event, '${tabletType}', '${group}', '${m.name}')">★</span>

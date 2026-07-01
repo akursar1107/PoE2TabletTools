@@ -442,16 +442,19 @@
 
             function renderTable(id, rows, cols) {
                 const tb = document.querySelector(`#${id} tbody`);
-                tb.innerHTML = rows.length
-                    ? rows
-                          .map(
-                              (r) =>
-                                  "<tr>" +
-                                  cols.map((c) => c(r)).join("") +
-                                  "</tr>",
-                          )
-                          .join("")
-                    : '<tr><td colspan="6" style="color:#555">No data yet</td></tr>';
+                const colCount = cols.length;
+                if (!rows || rows.length === 0) {
+                    tb.innerHTML = `<tr><td colspan="${colCount}" style="color:#555; text-align:center; padding:20px;">No data available yet</td></tr>`;
+                } else {
+                    tb.innerHTML = rows
+                        .map(
+                            (r) =>
+                                "<tr>" +
+                                cols.map((c) => c(r)).join("") +
+                                "</tr>",
+                        )
+                        .join("");
+                }
             }
 
             async function refresh() {
@@ -644,8 +647,22 @@
             }
 
             function showError(message) {
-                // Could add error display here if needed
                 console.error(message);
+                // Display error in all panels
+                const panels = document.querySelectorAll(".panel");
+                panels.forEach((panel) => {
+                    const existingEmpty = panel.querySelector(".empty-state");
+                    if (!existingEmpty) {
+                        const emptyState = document.createElement("div");
+                        emptyState.className = "empty-state";
+                        emptyState.innerHTML = `
+                            <div class="empty-state-icon">⚠️</div>
+                            <div>${message}</div>
+                            <button onclick="location.reload()" style="margin-top: 16px; padding: 8px 16px; background: #1a1a1a; border: 1px solid #a08050; color: #c8a96e; border-radius: 4px; cursor: pointer;">Retry</button>
+                        `;
+                        panel.appendChild(emptyState);
+                    }
+                });
             }
 
             function tick() {

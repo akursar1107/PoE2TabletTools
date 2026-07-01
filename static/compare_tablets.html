@@ -468,8 +468,22 @@
             }
 
             function showError(message) {
-                // Could add error display here
                 console.error(message);
+                const container = document.getElementById(
+                    "comparison-container",
+                );
+                const existingEmpty = container.querySelector(".empty-state");
+                if (!existingEmpty) {
+                    const emptyState = document.createElement("div");
+                    emptyState.className = "empty-state";
+                    emptyState.innerHTML = `
+                        <div class="empty-state-icon">⚠️</div>
+                        <div>${message}</div>
+                        <button onclick="loadData()" style="margin-top: 16px; padding: 8px 16px; background: #1a1a1a; border: 1px solid #a08050; color: #c8a96e; border-radius: 4px; cursor: pointer;">Retry</button>
+                    `;
+                    container.innerHTML = "";
+                    container.appendChild(emptyState);
+                }
             }
 
             function populateDropdowns() {
@@ -511,8 +525,13 @@
                 ].filter((t) => t);
 
                 if (selections.length === 0) {
-                    container.innerHTML =
-                        '<p style="color: #666; text-align: center; padding: 40px;">Select tablets from the dropdowns above to compare their modifiers.</p>';
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">ℹ️</div>
+                            <div>Select tablets from the dropdowns above to compare their modifiers.</div>
+                            <div style="margin-top: 8px; font-size: 11px; color: #555;">Choose 2-3 tablet types to see side-by-side comparison</div>
+                        </div>
+                    `;
                     return;
                 }
 
