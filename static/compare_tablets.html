@@ -383,6 +383,15 @@
             <a href="/modifiers">Modifiers</a>
             <a href="/compare-tablets" class="active">Compare</a>
             <a href="/favorites">Favorites</a>
+            <div class="global-search">
+                <span class="global-search-icon">🔍</span>
+                <input
+                    type="text"
+                    id="global-search"
+                    placeholder="Search..."
+                    title="Press Ctrl+K or / to search"
+                />
+            </div>
         </div>
 
         <div class="container">
@@ -629,6 +638,51 @@
             }
 
             loadData();
+
+            // Global search functionality
+            const searchInput = document.getElementById("global-search");
+            if (searchInput) {
+                searchInput.addEventListener("input", (e) => {
+                    const query = e.target.value.toLowerCase();
+                    if (query.length < 2) {
+                        // Reset all comparisons
+                        document
+                            .querySelectorAll(".tablet-comparison")
+                            .forEach((card) => {
+                                card.style.display = "";
+                            });
+                        return;
+                    }
+
+                    // Search through comparison cards
+                    document
+                        .querySelectorAll(".tablet-comparison")
+                        .forEach((card) => {
+                            const text = card.textContent.toLowerCase();
+                            card.style.display = text.includes(query)
+                                ? ""
+                                : "none";
+                        });
+                });
+
+                // Keyboard shortcut: Ctrl+K or / to focus search
+                document.addEventListener("keydown", (e) => {
+                    if ((e.ctrlKey && e.key === "k") || e.key === "/") {
+                        if (
+                            e.target.tagName !== "INPUT" &&
+                            e.target.tagName !== "SELECT"
+                        ) {
+                            e.preventDefault();
+                            searchInput.focus();
+                        }
+                    }
+                    if (e.key === "Escape") {
+                        searchInput.value = "";
+                        searchInput.dispatchEvent(new Event("input"));
+                        searchInput.blur();
+                    }
+                });
+            }
         </script>
     </body>
 </html>

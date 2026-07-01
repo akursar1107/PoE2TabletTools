@@ -3,6 +3,7 @@
     <head>
         <meta charset="UTF-8" />
         <title>PoE2 Tablet Tool - Home</title>
+        <link rel="stylesheet" href="/css/shared.css" />
         <style>
             * {
                 box-sizing: border-box;
@@ -219,7 +220,17 @@
             <a href="/dashboard">Main Dashboard</a>
             <a href="/normal-prices">Normal Prices</a>
             <a href="/modifiers">Modifiers</a>
+            <a href="/compare-tablets">Compare</a>
             <a href="/favorites">Favorites</a>
+            <div class="global-search">
+                <span class="global-search-icon">🔍</span>
+                <input
+                    type="text"
+                    id="global-search"
+                    placeholder="Search..."
+                    title="Press Ctrl+K or / to search"
+                />
+            </div>
         </div>
 
         <div class="nav-bar">
@@ -331,6 +342,37 @@
             // Add refresh button functionality
             function refresh() {
                 updateStatus();
+            }
+
+            // Global search functionality
+            const searchInput = document.getElementById("global-search");
+            if (searchInput) {
+                searchInput.addEventListener("input", (e) => {
+                    const query = e.target.value.toLowerCase();
+                    if (query.length < 2) return;
+
+                    // Search through all nav cards
+                    const navCards = document.querySelectorAll(".nav-card");
+                    navCards.forEach((card) => {
+                        const text = card.textContent.toLowerCase();
+                        card.style.display = text.includes(query)
+                            ? "block"
+                            : "none";
+                    });
+                });
+
+                // Keyboard shortcut: Ctrl+K or / to focus search
+                document.addEventListener("keydown", (e) => {
+                    if ((e.ctrlKey && e.key === "k") || e.key === "/") {
+                        e.preventDefault();
+                        searchInput.focus();
+                    }
+                    if (e.key === "Escape") {
+                        searchInput.value = "";
+                        searchInput.dispatchEvent(new Event("input"));
+                        searchInput.blur();
+                    }
+                });
             }
 
             updateStatus();

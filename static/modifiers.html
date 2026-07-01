@@ -484,6 +484,15 @@
             <a href="/modifiers" class="active">Modifiers</a>
             <a href="/compare-tablets">Compare</a>
             <a href="/favorites">Favorites</a>
+            <div class="global-search">
+                <span class="global-search-icon">🔍</span>
+                <input
+                    type="text"
+                    id="global-search"
+                    placeholder="Search modifiers..."
+                    title="Press Ctrl+K or / to search"
+                />
+            </div>
         </div>
 
         <div class="filter-bar">
@@ -1184,6 +1193,56 @@
                         localStorage.getItem("tabletFavorites") || "{}",
                     );
                 };
+            }
+
+            // Global search functionality - synced with per-page search
+            const globalSearchInput = document.getElementById("global-search");
+            if (globalSearchInput) {
+                globalSearchInput.addEventListener("input", (e) => {
+                    const query = e.target.value.toLowerCase();
+                    if (query.length < 2) {
+                        // Reset all tablets
+                        document
+                            .querySelectorAll(".tablet-card")
+                            .forEach((card) => {
+                                card.style.display = "";
+                            });
+                        // Also reset per-page filter if it exists
+                        const perPageFilter = document.getElementById(
+                            "global-filter-input",
+                        );
+                        if (perPageFilter) perPageFilter.value = "";
+                        return;
+                    }
+
+                    // Search through all tablet cards
+                    document
+                        .querySelectorAll(".tablet-card")
+                        .forEach((card) => {
+                            const text = card.textContent.toLowerCase();
+                            card.style.display = text.includes(query)
+                                ? ""
+                                : "none";
+                        });
+                });
+
+                // Keyboard shortcut: Ctrl+K or / to focus search
+                document.addEventListener("keydown", (e) => {
+                    if ((e.ctrlKey && e.key === "k") || e.key === "/") {
+                        if (
+                            e.target.tagName !== "INPUT" &&
+                            e.target.tagName !== "SELECT"
+                        ) {
+                            e.preventDefault();
+                            globalSearchInput.focus();
+                        }
+                    }
+                    if (e.key === "Escape") {
+                        globalSearchInput.value = "";
+                        globalSearchInput.dispatchEvent(new Event("input"));
+                        globalSearchInput.blur();
+                    }
+                });
             }
         </script>
     </body>

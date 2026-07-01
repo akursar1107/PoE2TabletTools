@@ -256,7 +256,17 @@
             <a href="/dashboard">Main Dashboard</a>
             <a href="/normal-prices" class="active">Normal Prices</a>
             <a href="/modifiers">Modifiers</a>
+            <a href="/compare-tablets">Compare</a>
             <a href="/favorites">Favorites</a>
+            <div class="global-search">
+                <span class="global-search-icon">🔍</span>
+                <input
+                    type="text"
+                    id="global-search"
+                    placeholder="Search..."
+                    title="Press Ctrl+K or / to search"
+                />
+            </div>
         </div>
 
         <div class="grid">
@@ -470,6 +480,60 @@
 
             refresh();
             setInterval(tick, 1000);
+
+            // Global search functionality
+            const searchInput = document.getElementById("global-search");
+            if (searchInput) {
+                searchInput.addEventListener("input", (e) => {
+                    const query = e.target.value.toLowerCase();
+                    if (query.length < 2) {
+                        // Reset all panels and tables
+                        document
+                            .querySelectorAll(".panel")
+                            .forEach((p) => (p.style.display = ""));
+                        document
+                            .querySelectorAll("table tbody tr")
+                            .forEach((r) => (r.style.display = ""));
+                        return;
+                    }
+
+                    // Search through panels
+                    document.querySelectorAll(".panel").forEach((panel) => {
+                        const text = panel.textContent.toLowerCase();
+                        panel.style.display = text.includes(query)
+                            ? ""
+                            : "none";
+                    });
+
+                    // Search through table rows
+                    document
+                        .querySelectorAll("table tbody tr")
+                        .forEach((row) => {
+                            const text = row.textContent.toLowerCase();
+                            row.style.display = text.includes(query)
+                                ? ""
+                                : "none";
+                        });
+                });
+
+                // Keyboard shortcut: Ctrl+K or / to focus search
+                document.addEventListener("keydown", (e) => {
+                    if ((e.ctrlKey && e.key === "k") || e.key === "/") {
+                        if (
+                            e.target.tagName !== "INPUT" &&
+                            e.target.tagName !== "SELECT"
+                        ) {
+                            e.preventDefault();
+                            searchInput.focus();
+                        }
+                    }
+                    if (e.key === "Escape") {
+                        searchInput.value = "";
+                        searchInput.dispatchEvent(new Event("input"));
+                        searchInput.blur();
+                    }
+                });
+            }
         </script>
     </body>
 </html>
