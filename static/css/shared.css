@@ -7,11 +7,52 @@
     padding: 0;
 }
 
+:root {
+    /* Dark theme colors (default) */
+    --bg-primary: #0e0e0e;
+    --bg-secondary: #141414;
+    --bg-tertiary: #1a1a1a;
+    --border-color: #2a2a2a;
+    --border-subtle: #1e1e1e;
+    --text-primary: #c9b99a;
+    --text-secondary: #888;
+    --text-muted: #666;
+    --text-dim: #555;
+    --accent-gold: #a08050;
+    --accent-gold-light: #c8a96e;
+    --accent-gold-bright: #e8d5a3;
+    --success: #5a9e5a;
+    --error: #cc6666;
+    --info: #6699cc;
+}
+
+/* Light theme colors */
+[data-theme="light"] {
+    --bg-primary: #f8f8f8;
+    --bg-secondary: #ffffff;
+    --bg-tertiary: #f0f0f0;
+    --border-color: #e0e0e0;
+    --border-subtle: #d0d0d0;
+    --text-primary: #2a2a2a;
+    --text-secondary: #666666;
+    --text-muted: #888888;
+    --text-dim: #999999;
+    --accent-gold: #8b6b3a;
+    --accent-gold-light: #a08050;
+    --accent-gold-bright: #c8a96e;
+    --success: #2a7f2a;
+    --error: #882222;
+    --info: #1a5fb4;
+}
+
 body {
-    background: #0e0e0e;
-    color: #c9b99a;
+    background: var(--bg-primary);
+    color: var(--text-primary);
     font-family: "Segoe UI", sans-serif;
     font-size: 13px;
+    transition:
+        background 0.3s ease,
+        color 0.3s ease;
 }
 
 /* Header Styles */
