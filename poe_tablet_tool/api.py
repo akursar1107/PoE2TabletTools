@@ -6,7 +6,7 @@ from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 
 import poe_tablet_tool.report_builder as report_builder
@@ -181,7 +181,7 @@ def api_time_patterns() -> list[dict]:
 
 
 @app.get("/api/export/prices-csv")
-def export_prices_csv() -> str:
+def export_prices_csv() -> Response:
     """Export current prices as CSV."""
     import csv
     from io import StringIO
@@ -238,22 +238,11 @@ def export_prices_csv() -> str:
             ]
         )
 
-    return output.getvalue()
-
-
-def main() -> None:
-    import uvicorn
-
-    uvicorn.run(
-        "poe_tablet_tool.api:app",
-        host=settings.api_host,
-        port=settings.api_port,
-        reload=False,
+    return Response(
+        content=output.getvalue(),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=prices.csv"},
     )
-
-
-if __name__ == "__main__":
-    main()
 
 
 @app.post("/api/snapshots/trigger")
@@ -313,7 +302,7 @@ def league_info() -> dict:
 @app.get("/api/reports/mod-reference")
 def api_mod_reference() -> list[dict]:
     """Get all tablet modifier suffixes - summary by tablet type."""
-    return report_builder.mod_reference()
+    return report_builder.mod_reference_separated()
 
 
 @app.get("/api/reports/mod-reference-separated")
@@ -350,3 +339,18 @@ def compare_tablets_dashboard() -> FileResponse:
     if not path.is_file():
         raise HTTPException(status_code=404, detail="compare_tablets.html not found")
     return FileResponse(path)
+
+
+def main() -> None:
+    import uvicorn
+
+    uvicorn.run(
+        "poe_tablet_tool.api:app",
+        host=settings.api_host,
+        port=settings.api_port,
+        reload=False,
+    )
+
+
+if __name__ == "__main__":
+    main()

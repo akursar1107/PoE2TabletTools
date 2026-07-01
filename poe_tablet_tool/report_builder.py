@@ -305,7 +305,7 @@ def price_spread_analysis(league_id: int) -> list[dict]:
                 ROUND(MIN(l.price_divine), 2) as min_div,
                 ROUND(MAX(l.price_divine), 2) as max_div,
                 ROUND(AVG(l.price_divine), 2) as avg_div,
-                ROUND(STDDEV(l.price_divine), 2) as stddev_div
+                ROUND(SQRT(MAX(AVG(l.price_divine * l.price_divine) - AVG(l.price_divine) * AVG(l.price_divine), 0)), 2) as stddev_div
             FROM listings l
             JOIN snapshots s ON l.snapshot_id = s.id
             WHERE l.league_id = ?
@@ -474,16 +474,6 @@ def time_based_patterns(league_id: int) -> list[dict]:
             (league_id, MAX_DIV, floor),
         ).fetchall()
     )
-
-
-def mod_reference() -> list[dict]:
-    """
-    Get all tablet modifier suffixes organized by tablet type.
-    Static data from wiki - does not require league_id.
-    """
-    from poe_tablet_tool.modifiers_data import get_modifiers_separated
-
-    return get_modifiers_separated()
 
 
 def mod_reference_separated() -> list[dict]:
