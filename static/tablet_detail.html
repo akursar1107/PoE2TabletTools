@@ -181,6 +181,30 @@
                 color: #c8a96e;
                 border-color: #a08050;
             }
+            .loading {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 40px;
+                color: #666;
+            }
+            .spinner {
+                border: 2px solid #333;
+                border-top: 2px solid #a08050;
+                border-radius: 50%;
+                width: 20px;
+                height: 20px;
+                animation: spin 1s linear infinite;
+                margin-right: 10px;
+            }
+            @keyframes spin {
+                0% {
+                    transform: rotate(0deg);
+                }
+                100% {
+                    transform: rotate(360deg);
+                }
+            }
         </style>
     </head>
     <body>
@@ -233,6 +257,14 @@
                 <div class="section-header">Prefixes</div>
                 <div class="section-content">
                     <div class="mod-grid" id="prefixes-grid"></div>
+                    <div
+                        class="loading"
+                        id="prefixes-loading"
+                        style="display: none"
+                    >
+                        <div class="spinner"></div>
+                        Loading prefixes...
+                    </div>
                 </div>
             </div>
 
@@ -240,6 +272,14 @@
                 <div class="section-header">Suffixes</div>
                 <div class="section-content">
                     <div class="mod-grid" id="suffixes-grid"></div>
+                    <div
+                        class="loading"
+                        id="suffixes-loading"
+                        style="display: none"
+                    >
+                        <div class="spinner"></div>
+                        Loading suffixes...
+                    </div>
                 </div>
             </div>
         </div>
@@ -248,6 +288,7 @@
             const API = window.location.origin || "http://localhost:8001";
             let allData = [];
             let currentTablet = null;
+            let isLoading = true;
 
             // Get tablet type from URL path (e.g., /tablet/breach)
             const pathParts = window.location.pathname.split("/");
@@ -290,17 +331,34 @@
                         );
                         if (currentTablet) {
                             renderPage();
+                            isLoading = false;
                         } else {
                             document.getElementById("tablet-name").textContent =
                                 "Tablet not found";
+                            isLoading = false;
                         }
                     }
                 } catch (e) {
                     console.error("Failed to load data:", e);
+                    isLoading = false;
+                    // Show error message
+                    document.getElementById("prefixes-loading").innerHTML =
+                        '<div style="color: #cc6666; text-align: center; padding: 20px;">Failed to load data. Please refresh.</div>';
+                    document.getElementById("prefixes-loading").style.display =
+                        "flex";
+                    document.getElementById("suffixes-loading").innerHTML = "";
+                    document.getElementById("suffixes-loading").style.display =
+                        "none";
                 }
             }
 
             function renderPage() {
+                // Show loading indicators initially
+                document.getElementById("prefixes-loading").style.display =
+                    "flex";
+                document.getElementById("suffixes-loading").style.display =
+                    "flex";
+
                 // Set header info
                 const icon = tabletIcons[tabletType] || "📜";
                 const desc =
@@ -331,30 +389,37 @@
                 // Render prefixes
                 const prefixesGrid = document.getElementById("prefixes-grid");
                 const prefixes = currentTablet.prefixes || {};
-                prefixesGrid.innerHTML = Object.entries(prefixes)
-                    .map(
-                        ([group, mods]) => `
-                        <div class="mod-card">
-                            <h4><span class="mod-type-badge prefix-badge">Prefix</span>${group}</h4>
-                            ${mods
-                                .map(
-                                    (m) => `
-                                <div class="mod-item">
-                                    <strong>${m.name}</strong>
-                                    <span class="mod-description"> - ${m.description}</span>
-                                </div>
-                            `,
-                                )
-                                .join("")}
-                        </div>
-                    `,
-                    )
-                    .join("");
+                if (Object.keys(prefixes).length === 0) {
+                    prefixesGrid.innerHTML = '<div style="color: #666; text-align: center; padding: 20px; grid-column: 1 / -1;">No prefixes for this tablet type.</div>';
+                } else {
+                    prefixesGrid.innerHTML = Object.entries(prefixes)
+                        .map(
+                            ([group, mods]) => `
+                            <div class="mod-card">
+                                <h4><span class="mod-type-badge prefix-badge">Prefix</span>${group}</h4>
+                                ${mods
+                                    .map(
+                                        (m) => `
+                                    <div class="mod-item">
+                                        <strong>${m.name}</strong>
+                                        <span class="mod-description"> - ${m.description}</span>
+                                    </div>
+                                `,
+                                    )
+                                    .join("")}
+                            </div>
+                        `,
+                        )
+                        .join("");
+                }
 
                 // Render suffixes
                 const suffixesGrid = document.getElementById("suffixes-grid");
                 const suffixes = currentTablet.suffixes || {};
-                suffixesGrid.innerHTML = Object.entries(suffixes)
+                if (Object.keys(suffixes).length === 0) {
+                    suffixesGrid.innerHTML = '<div style="color: #666; text-align: center; padding: 20px; grid-column: 1 / -1;">No suffixes for this tablet type.</div>';
+                } else {
+                    suffixesGrid.innerHTML = Object.entries(suffixes)
                     .map(
                         ([group, mods]) => `
                         <div class="mod-card">
@@ -373,7 +438,18 @@
                     `,
                     )
                     .join("");
+
+                // Hide loading indicators after rendering
+                document.getElementById("prefixes-loading").style.display =
+                    "none";
+                document.getElementById("suffixes-loading").style.display =
+                    "none";
+                isLoading = false;
             }
+
+            // Show loading indicators while data loads
+            document.getElementById("prefixes-loading").style.display = "flex";
+            document.getElementById("suffixes-loading").style.display = "flex";
 
             loadData();
         </script>
