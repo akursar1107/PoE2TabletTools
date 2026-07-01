@@ -526,3 +526,235 @@ if (document.readyState === "loading") {
   initTableSorting();
   addExportButtons();
 }
+
+/**
+ * Chart.js default configuration for PoE2 Tablet Tool
+ * These are enhanced chart options with better interactivity and styling
+ */
+const ChartDefaults = {
+    // Common chart options
+    getCommonOptions(title = '') {
+        return {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        color: function(context) {
+                            // Use CSS variable for text color
+                            return getComputedStyle(document.documentElement).getPropertyValue('--text-secondary') || '#888';
+                        },
+                        boxWidth: 12,
+                        padding: 15,
+                        usePointStyle: true
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    titleColor: '#c8a96e',
+                    bodyColor: '#c9b99a',
+                    borderColor: '#a08050',
+                    borderWidth: 1,
+                    padding: 10,
+                    displayColors: true,
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            if (context.parsed.y !== null) {
+                                label += context.parsed.y.toFixed(2);
+                            }
+                            return label;
+                        }
+                    }
+                },
+                title: {
+                    display: title ? true : false,
+                    text: title,
+                    color: function() {
+                        return getComputedStyle(document.documentElement).getPropertyValue('--text-primary') || '#c9b99a';
+                    },
+                    font: {
+                        size: 14
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: {
+                        color: function() {
+                            return getComputedStyle(document.documentElement).getPropertyValue('--text-secondary') || '#888';
+                        }
+                    },
+                    grid: {
+                        color: function() {
+                            return getComputedStyle(document.documentElement).getPropertyValue('--border-subtle') || '#1e1e1e';
+                        }
+                    }
+                },
+                y: {
+                    ticks: {
+                        color: function() {
+                            return getComputedStyle(document.documentElement).getPropertyValue('--text-secondary') || '#888';
+                        }
+                    },
+                    grid: {
+                        color: function() {
+                            return getComputedStyle(document.documentElement).getPropertyValue('--border-subtle') || '#1e1e1e';
+                        }
+                    }
+                }
+            },
+            onClick: (e, elements) => {
+                // Handle chart clicks
+                if (elements.length > 0) {
+                    const element = elements[0];
+                    const dataset = e.chart.data.datasets[element.datasetIndex];
+                    const label = dataset.label || '';
+                    const value = dataset.data[element.index];
+                    console.log(`Clicked: ${label} - ${value}`);
+                }
+            }
+        };
+    },
+    
+    // Line chart specific options
+    getLineOptions(title = '') {
+        const common = this.getCommonOptions(title);
+        return {
+            ...common,
+            interaction: {
+                mode: 'index',
+                intersect: false
+            },
+            plugins: {
+                ...common.plugins,
+                legend: {
+                    ...common.plugins.legend,
+                    position: 'top'
+                }
+            },
+            scales: {
+                ...common.scales,
+                x: {
+                    ...common.scales.x
+                },
+                y: {
+                    ...common.scales.y,
+                    beginAtZero: false
+                }
+            }
+        };
+    },
+    
+    // Bar chart specific options
+    getBarOptions(title = '') {
+        const common = this.getCommonOptions(title);
+        return {
+            ...common,
+            interaction: {
+                mode: 'index',
+                intersect: false
+            },
+            plugins: {
+                ...common.plugins,
+                legend: {
+                    ...common.plugins.legend,
+                    position: 'top'
+                }
+            },
+            scales: {
+                ...common.scales,
+                x: {
+                    ...common.scales.x,
+                    stacked: false
+                },
+                y: {
+                    ...common.scales.y,
+                    beginAtZero: true
+                }
+            }
+        };
+    },
+    
+    // Get tablet color with alpha for chart backgrounds
+    getTabletColorWithAlpha(tabletType, alpha = 'aa') {
+        const color = TABLET_COLORS[tabletType] || COLORS[0];
+        return color + alpha;
+    }
+};
+
+/**
+ * Export chart as image (PNG)
+ * @param {Chart} chart - The Chart.js chart instance
+ * @param {string} filename - The filename for the image
+ */
+function exportChartAsImage(chart, filename = 'chart.png') {
+    if (!chart) return;
+    
+    // Use Chart.js toImage method
+    const imageUrl = chart.toBase64Image();
+    const link = document.createElement('a');
+    link.href = imageUrl;
+    link.download = filename;
+    link.click();
+}
+
+/**
+ * Create chart container with export button
+ * @param {string} canvasId - The ID of the canvas element
+ * @param {string} chartTitle - The title for the chart
+ * @returns {HTMLElement} The container element
+ */
+function createChartContainer(canvasId, chartTitle = '') {
+    const container = document.createElement('div');
+    container.className = 'chart-container';
+    container.style.position = 'relative';
+    
+    const canvas = document.createElement('canvas');
+    canvas.id = canvasId;
+    container.appendChild(canvas);
+    
+    // Add export button
+    const exportButton = document.createElement('button');
+    exportButton.className = 'chart-export-btn';
+    exportButton.innerHTML = '📥';
+    exportButton.title = 'Export chart as PNG';
+    exportButton.style.cssText = `
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background: rgba(0, 0, 0, 0.7);
+        border: 1px solid #a08050;
+        color: #c8a96e;
+        border-radius: 4px;
+        padding: 4px 8px;
+        font-size: 12px;
+        cursor: pointer;
+        z-index: 10;
+    `;
+    exportButton.onclick = () => {
+        const chart = Chart.getChart(canvasId);
+        if (chart) {
+            exportChartAsImage(chart, `${chartTitle.replace(/\s+/g, '-').toLowerCase()}.png`);
+        }
+    };
+    
+    container.appendChild(exportButton);
+    
+    return container;
+}
+
+/**
+ * Theme-aware chart color utility
+ * Returns colors that work with both dark and light themes
+ */
+const ThemeColors = {
+    getTextColor: () => getComputedStyle(document.documentElement).getPropertyValue('--text-primary') || '#c9b99a',
+    getTextSecondary: () => getComputedStyle(document.documentElement).getPropertyValue('--text-secondary') || '#888',
+    getGridColor: () => getComputedStyle(document.documentElement).getPropertyValue('--border-subtle') || '#1e1e1e',
+    getBackgroundColor: () => getComputedStyle(document.documentElement).getPropertyValue('--bg-primary') || '#0e0e0e'
+};
