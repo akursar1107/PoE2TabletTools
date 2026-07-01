@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <title>PoE2 Tablet Favorites</title>
+        <style>
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+            body {
+                background: #0e0e0e;
+                color: #c9b99a;
+                font-family: "Segoe UI", sans-serif;
+                font-size: 13px;
+            }
+            header {
+                padding: 14px 24px;
+                border-bottom: 1px solid #2a2a2a;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+            header h1 {
+                font-size: 17px;
+                color: #e8d5a3;
+                letter-spacing: 1px;
+            }
+            .top-nav {
+                background: #1a1a1a;
+                border-bottom: 1px solid #2a2a2a;
+                padding: 8px 24px;
+                display: flex;
+                gap: 24px;
+            }
+            .top-nav a {
+                color: #888;
+                text-decoration: none;
+                font-size: 12px;
+                padding: 4px 8px;
+                border-radius: 4px;
+                transition: all 0.2s;
+            }
+            .top-nav a:hover {
+                color: #c8a96e;
+                background: #2a2a2a;
+            }
+            .top-nav a.active {
+                color: #c8a96e;
+                background: #2a2a2a;
+            }
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 20px;
+            }
+            .controls {
+                display: flex;
+                gap: 12px;
+                margin-bottom: 20px;
+                flex-wrap: wrap;
+                align-items: center;
+            }
+            button {
+                background: #1a1a1a;
+                border: 1px solid #2a2a2a;
+                color: #c9b99a;
+                padding: 8px 16px;
+                border-radius: 4px;
+                font-size: 13px;
+                cursor: pointer;
+            }
+            button:hover {
+                background: #2a2a2a;
+                border-color: #a08050;
+            }
+            button.secondary {
+                background: transparent;
+                border-color: #3a3a3a;
+                color: #888;
+            }
+            button.secondary:hover {
+                background: #2a2a2a;
+                color: #c8a96e;
+            }
+            button.danger {
+                border-color: #884444;
+                color: #cc6666;
+            }
+            button.danger:hover {
+                background: #884444;
+                color: #ffaaaa;
+            }
+            .favorites-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+                gap: 14px;
+            }
+            .fav-card {
+                background: #141414;
+                border: 1px solid #2a2a2a;
+                border-radius: 6px;
+                overflow: hidden;
+            }
+            .fav-card-header {
+                padding: 12px 14px;
+                background: #1a1a1a;
+                border-bottom: 1px solid #2a2a2a;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+            .fav-card-header h3 {
+                font-size: 13px;
+                color: #c8a96e;
+                text-transform: capitalize;
+            }
+            .fav-card-body {
+                padding: 14px;
+            }
+            .fav-mods {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 6px;
+            }
+            .fav-mod-tag {
+                background: #2a2a2a;
+                border: 1px solid #3a3a3a;
+                border-radius: 4px;
+                padding: 3px 8px;
+                font-size: 11px;
+                color: #aaa;
+            }
+            .fav-mod-tag:hover {
+                border-color: #a08050;
+                color: #c8a96e;
+            }
+            .empty-state {
+                text-align: center;
+                padding: 60px 20px;
+                color: #666;
+            }
+            .empty-state-icon {
+                font-size: 48px;
+                margin-bottom: 16px;
+            }
+            .info-text {
+                padding: 14px 24px;
+                color: #666;
+                font-size: 12px;
+                border-bottom: 1px solid #2a2a2a;
+                background: #1a1a1a;
+            }
+            .info-text a {
+                color: #888;
+            }
+            @media (max-width: 768px) {
+                .controls { flex-direction: column; align-items: stretch; }
+                .favorites-grid { grid-template-columns: 1fr; }
+            }
+        </style>
+    </head>
+    <body>
+        <div id="refresh-bar"></div>
+        <header>
+            <h1>⬡ Tablet Favorites</h1>
+            <span id="status">Static Data</span>
+        </header>
+
+        <div class="top-nav">
+            <a href="/">Home</a>
+            <a href="/dashboard">Main Dashboard</a>
+            <a href="/normal-prices">Normal Prices</a>
+            <a href="/modifiers">Modifiers</a>
+            <a href="/compare-tablets">Compare</a>
+            <a href="/favorites" class="active">Favorites</a>
+        </div>
+
+        <div class="container">
+            <div class="info-text">
+                <strong>Favorites</strong> - Bookmark modifiers for quick access.
+                Click the star icon on any modifier in the Modifiers page to add it here.
+            </div>
+
+            <div class="controls">
+                <button onclick="exportFavorites()">📥 Export Favorites</button>
+                <button class="secondary" onclick="importFavorites()">📤 Import Favorites</button>
+                <input type="file" id="import-file" accept=".json" style="display: none;" />
+                <button class="danger" onclick="clearFavorites()">🗑️ Clear All</button>
+            </div>
+
+            <div class="favorites-grid" id="favorites-grid">
+                <div class="empty-state">
+                    <div class="empty-state-icon">⭐</div>
+                    <p>No favorites yet. Visit the Modifiers page and click the star on any modifier to add it here.</p>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            const API = window.location.origin || "http://localhost:8001";
+            let allData = [];
+            let favorites = JSON.parse(localStorage.getItem('tabletFavorites') || '{}');
+
+            // Load all modifier data
+            async function loadData() {
+                try {
+                    const res = await fetch(`${API}/api/reports/mod-reference-separated`);
+                    if (res.ok) {
+                        allData = await res.json();
+                        renderFavorites();
+                    }
+                } catch (e) {
+                    console.error("Failed to load data:", e);
+                }
+            }
+
+            function renderFavorites() {
+                const grid = document.getElementById('favorites-grid');
+
+                // Group favorites by tablet type
+                const favoritesByTablet = {};
+                Object.entries(favorites).forEach(([key, value]) => {
+                    if (!value) return;
+                    const [tabletType, group, modName] = key.split('|');
+                    if (!favoritesByTablet[tabletType]) {
+                        favoritesByTablet[tabletType] = { mods: [], tabletType };
+                    }
+                    favoritesByTablet[tabletType].mods.push({ group, modName, key });
+                });
+
+                if (Object.keys(favoritesByTablet).length === 0) {
+                    grid.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">⭐</div>
+                            <p>No favorites yet. Visit the Modifiers page and click the star on any modifier to add it here.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                grid.innerHTML = Object.values(favoritesByTablet)
+                    .map(tablet => {
+                        const tabletData = allData.find(t => t.tablet_type === tablet.tabletType);
+                        const modsList = tablet.mods.map(fav => {
+                            const modInfo = getModInfo(tablet.tabletType, fav.group, fav.modName);
+                            return modInfo ?
+                                `<span class="fav-mod-tag" title="${modInfo.description}" onclick="removeFavorite('${fav.key}')">` +
+                                `⭐ ${modInfo.name}</span>` : '';
+                        }).join('');
+
+                        return `
+                            <div class="fav-card">
+                                <div class="fav-card-header">
+                                    <h3>${tablet.tabletType}</h3>
+                                    <button class="danger" onclick="removeAllFromTablet('${tablet.tabletType}')" style="background: transparent; border: none; cursor: pointer; font-size: 14px; padding: 2px 6px;">× All</button>
+                                </div>
+                                <div class="fav-card-body">
+                                    <div class="fav-mods">${modsList || '<span style="color: #666;">No favorites for this tablet</span>'}</div>
+                                </div>
+                            </div>
+                        `;
+                    })
+                    .join('');
+            }
+
+            function getModInfo(tabletType, group, modName) {
+                const tablet = allData.find(t => t.tablet_type === tabletType);
+                if (!tablet) return null;
+
+                const allGroups = { ...tablet.prefixes, ...tablet.suffixes };
+                const groupData = allGroups[group];
+                if (!groupData) return null;
+
+                const mods = groupData.mods || groupData;
+                return mods.find(m => m.name === modName);
+            }
+
+            function toggleFavorite(tabletType, group, modName) {
+                const key = `${tabletType}|${group}|${modName}`;
+                if (favorites[key]) {
+                    delete favorites[key];
+                } else {
+                    favorites[key] = true;
+                }
+                localStorage.setItem('tabletFavorites', JSON.stringify(favorites));
+                renderFavorites();
+            }
+
+            function removeFavorite(key) {
+                delete favorites[key];
+                localStorage.setItem('tabletFavorites', JSON.stringify(favorites));
+                renderFavorites();
+            }
+
+            function removeAllFromTablet(tabletType) {
+                Object.keys(favorites).forEach(key => {
+                    if (key.startsWith(`${tabletType}|`)) {
+                        delete favorites[key];
+                    }
+                });
+                localStorage.setItem('tabletFavorites', JSON.stringify(favorites));
+                renderFavorites();
+            }
+
+            function clearFavorites() {
+                if (confirm('Are you sure you want to clear all favorites?')) {
+                    favorites = {};
+                    localStorage.setItem('tabletFavorites', JSON.stringify(favorites));
+                    renderFavorites();
+                }
+            }
+
+            function exportFavorites() {
+                const data = JSON.stringify(favorites, null, 2);
+                const blob = new Blob([data], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'tablet-favorites.json';
+                a.click();
+                URL.revokeObjectURL(url);
+            }
+
+            function importFavorites() {
+                document.getElementById('import-file').click();
+            }
+
+            document.getElementById('import-file').addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        try {
+                            const imported = JSON.parse(event.target.result);
+                            favorites = { ...favorites, ...imported };
+                            localStorage.setItem('tabletFavorites', JSON.stringify(favorites));
+                            renderFavorites();
+                            e.target.value = '';
+                        } catch (err) {
+                            alert('Invalid file format. Please import a valid JSON file.');
+                        }
+                    };
+                    reader.readAsText(file);
+                }
+            });
+
+            // Make toggleFavorite available globally for modifiers.html
+            window.toggleFavorite = toggleFavorite;
+            window.getFavorites = () => favorites;
+
+            loadData();
+        </script>
+    </body>
+</html>
