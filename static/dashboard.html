@@ -239,6 +239,30 @@
             canvas {
                 max-height: 220px;
             }
+            .chart-info {
+                padding: 8px 12px;
+                font-size: 11px;
+                color: #666;
+                background: #1a1a1a;
+                border-top: 1px solid #2a2a2a;
+                margin-top: -1px;
+            }
+            .chart-wrap {
+                position: relative;
+            }
+            .chart-export-btn {
+                position: absolute;
+                top: 8px;
+                right: 8px;
+                background: rgba(0, 0, 0, 0.7);
+                border: 1px solid #a08050;
+                color: #c8a96e;
+                border-radius: 4px;
+                padding: 4px 8px;
+                font-size: 12px;
+                cursor: pointer;
+                z-index: 10;
+            }
             .pct-bar-wrap {
                 display: flex;
                 align-items: center;
@@ -355,6 +379,13 @@
                     <tbody></tbody>
                 </table>
             </div>
+            <div class="panel full">
+                <h2>Top Modifiers by Frequency (Horizontal Bar)</h2>
+                <div class="chart-wrap"><canvas id="chart-freq"></canvas></div>
+                <div class="chart-info">
+                    Shows the most common modifiers across all tablets
+                </div>
+            </div>
             <div class="panel">
                 <h2>Likely-Sold Velocity (lift proxy)</h2>
                 <table id="tbl-velocity" class="sortable">
@@ -378,6 +409,14 @@
                 <div class="chart-wrap"><canvas id="chart-time"></canvas></div>
             </div>
             <div class="panel">
+                <h2>Tablet Type Distribution</h2>
+                <div class="chart-wrap"><canvas id="chart-types"></canvas></div>
+                <div class="chart-info">
+                    Shows the distribution of tablets by type based on listing
+                    counts
+                </div>
+            </div>
+            <div class="panel full">
                 <h2>Price Distribution by Type</h2>
                 <div class="chart-wrap"><canvas id="chart-dist"></canvas></div>
             </div>
@@ -438,7 +477,9 @@
             const INTERVAL = 30;
             let countdown = INTERVAL;
             let timeChart = null,
-                distChart = null;
+                distChart = null,
+                typeChart = null,
+                freqChart = null;
 
             const COLORS = [
                 "#c8a96e",
@@ -567,6 +608,18 @@
                                     legend: {
                                         labels: { color: "#888", boxWidth: 12 },
                                     },
+                                    tooltip: {
+                                        callbacks: {
+                                            label: function (context) {
+                                                return (
+                                                    context.dataset.label +
+                                                    ": " +
+                                                    fmt(context.parsed.y, 2) +
+                                                    " div"
+                                                );
+                                            },
+                                        },
+                                    },
                                 },
                                 scales: {
                                     x: {
@@ -584,6 +637,139 @@
                             },
                         },
                     );
+
+                    // Tablet Type Distribution (Pie Chart)
+                    const tabletCounts = data.tablet_counts || [];
+                    if (tabletCounts.length > 0 && window.Chart) {
+                        const types = tabletCounts.map((r) => r.tablet_type);
+                        const counts = tabletCounts.map((r) => r.count);
+                        const typeColors = types.map(
+                            (t) =>
+                                TABLET_COLORS[t] ||
+                                COLORS[types.indexOf(t) % COLORS.length],
+                        );
+
+                        if (typeChart) typeChart.destroy();
+                        typeChart = new Chart(
+                            document.getElementById("chart-types"),
+                            {
+                                type: "pie",
+                                data: {
+                                    labels: types,
+                                    datasets: [
+                                        {
+                                            data: counts,
+                                            backgroundColor: typeColors,
+                                            borderColor: "#1a1a1a",
+                                            borderWidth: 1,
+                                        },
+                                    ],
+                                },
+                                options: {
+                                    responsive: true,
+                                    plugins: {
+                                        legend: {
+                                            position: "right",
+                                            labels: {
+                                                color: "#888",
+                                                boxWidth: 12,
+                                            },
+                                        },
+                                        tooltip: {
+                                            callbacks: {
+                                                label: function (context) {
+                                                    const total =
+                                                        context.dataset.data.reduce(
+                                                            (a, b) => a + b,
+                                                            0,
+                                                        );
+                                                    const percentage = (
+                                                        (context.parsed /
+                                                            total) *
+                                                        100
+                                                    ).toFixed(1);
+                                                    return (
+                                                        context.label +
+                                                        ": " +
+                                                        context.parsed +
+                                                        " (" +
+                                                        percentage +
+                                                        "%)"
+                                                    );
+                                                },
+                                            },
+                                        },
+                                    },
+                                },
+                            },
+                        );
+                    }
+
+                    // Top Modifiers by Frequency (Horizontal Bar Chart)
+                    const freqData = data.affix_frequency || [];
+                    if (freqData.length > 0 && window.Chart) {
+                        // Get top 10 modifiers by count
+                        const topMods = [...freqData]
+                            .sort((a, b) => b.n - a.n)
+                            .slice(0, 10);
+                        const modNames = topMods.map((r) =>
+                            strip(r.mod_family).substring(0, 30),
+                        );
+                        const modCounts = topMods.map((r) => r.n);
+                        const modColors = topMods.map(
+                            (_, i) => COLORS[i % COLORS.length] + "80",
+                        );
+
+                        if (freqChart) freqChart.destroy();
+                        freqChart = new Chart(
+                            document.getElementById("chart-freq"),
+                            {
+                                type: "bar",
+                                data: {
+                                    labels: modNames,
+                                    datasets: [
+                                        {
+                                            label: "Frequency",
+                                            data: modCounts,
+                                            backgroundColor: modColors,
+                                            borderColor: COLORS[0],
+                                            borderWidth: 1,
+                                        },
+                                    ],
+                                },
+                                options: {
+                                    indexAxis: "y",
+                                    responsive: true,
+                                    plugins: {
+                                        legend: {
+                                            display: false,
+                                        },
+                                        tooltip: {
+                                            callbacks: {
+                                                label: function (context) {
+                                                    return (
+                                                        "Count: " +
+                                                        context.parsed.x
+                                                    );
+                                                },
+                                            },
+                                        },
+                                    },
+                                    scales: {
+                                        x: {
+                                            ticks: { color: "#888" },
+                                            grid: { color: "#1e1e1e" },
+                                            beginAtZero: true,
+                                        },
+                                        y: {
+                                            ticks: { color: "#888" },
+                                            grid: { color: "#1e1e1e" },
+                                        },
+                                    },
+                                },
+                            },
+                        );
+                    }
 
                     const distData = data.price_distribution || [];
                     const buckets = ["50-100", "100-200", "200-500", "500+"];
@@ -621,15 +807,29 @@
                                     legend: {
                                         labels: { color: "#888", boxWidth: 12 },
                                     },
+                                    tooltip: {
+                                        callbacks: {
+                                            label: function (context) {
+                                                return (
+                                                    context.dataset.label +
+                                                    ": " +
+                                                    context.parsed.y +
+                                                    " listings"
+                                                );
+                                            },
+                                        },
+                                    },
                                 },
                                 scales: {
                                     x: {
                                         ticks: { color: "#888" },
                                         grid: { color: "#1e1e1e" },
+                                        stacked: false,
                                     },
                                     y: {
                                         ticks: { color: "#888" },
                                         grid: { color: "#1e1e1e" },
+                                        beginAtZero: true,
                                     },
                                 },
                             },
