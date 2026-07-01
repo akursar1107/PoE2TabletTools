@@ -63,22 +63,6 @@
                 color: #c8a96e;
                 background: #2a2a2a;
             }
-            .panel {
-                background: #141414;
-                border: 1px solid #2a2a2a;
-                border-radius: 6px;
-                overflow: hidden;
-                margin-bottom: 14px;
-            }
-            .panel h2 {
-                padding: 9px 14px;
-                font-size: 12px;
-                color: #a08050;
-                background: #1a1a1a;
-                border-bottom: 1px solid #2a2a2a;
-                text-transform: uppercase;
-                letter-spacing: 1px;
-            }
             .tablet-grid {
                 display: grid;
                 grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -121,6 +105,21 @@
             .mod-list.expanded {
                 display: block;
             }
+            .mod-section {
+                margin-bottom: 16px;
+            }
+            .mod-section:last-child {
+                margin-bottom: 0;
+            }
+            .mod-section-header {
+                font-size: 11px;
+                color: #a08050;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                margin-bottom: 8px;
+                padding-bottom: 4px;
+                border-bottom: 1px solid #2a2a2a;
+            }
             .mod-group {
                 margin-bottom: 12px;
                 padding-bottom: 12px;
@@ -137,6 +136,23 @@
                 text-transform: uppercase;
                 letter-spacing: 0.5px;
                 margin-bottom: 6px;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+            }
+            .mod-type-badge {
+                font-size: 10px;
+                padding: 1px 4px;
+                border-radius: 2px;
+                font-weight: bold;
+            }
+            .prefix-badge {
+                color: #996666;
+                background: rgba(153, 102, 102, 0.15);
+            }
+            .suffix-badge {
+                color: #669966;
+                background: rgba(102, 153, 102, 0.15);
             }
             .mod-item {
                 font-size: 12px;
@@ -158,11 +174,17 @@
             .mod-item:hover .mod-description {
                 color: #999;
             }
-
+            .empty-message {
+                color: #555 !important;
+                font-style: italic;
+            }
             .filter-bar {
                 padding: 14px 24px;
                 border-bottom: 1px solid #2a2a2a;
                 background: #1a1a1a;
+                display: flex;
+                align-items: center;
+                gap: 12px;
             }
             .filter-bar input {
                 background: #2a2a2a;
@@ -214,36 +236,8 @@
                 id="filter-input"
                 placeholder="Filter modifiers..."
             />
-            <button
-                id="expand-all"
-                style="
-                    margin-left: 12px;
-                    padding: 6px 12px;
-                    background: #2a2a2a;
-                    border: 1px solid #3a3a3a;
-                    color: #c9b99a;
-                    border-radius: 4px;
-                    cursor: pointer;
-                    font-size: 12px;
-                "
-            >
-                Expand All
-            </button>
-            <button
-                id="collapse-all"
-                style="
-                    margin-left: 8px;
-                    padding: 6px 12px;
-                    background: #2a2a2a;
-                    border: 1px solid #3a3a3a;
-                    color: #c9b99a;
-                    border-radius: 4px;
-                    cursor: pointer;
-                    font-size: 12px;
-                "
-            >
-                Collapse All
-            </button>
+            <button id="expand-all" style="padding: 6px 12px; background: #2a2a2a; border: 1px solid #3a3a3a; color: #c9b99a; border-radius: 4px; cursor: pointer; font-size: 12px;">Expand All</button>
+            <button id="collapse-all" style="padding: 6px 12px; background: #2a2a2a; border: 1px solid #3a3a3a; color: #c9b99a; border-radius: 4px; cursor: pointer; font-size: 12px;">Collapse All</button>
         </div>
 
         <div class="info-text">
@@ -253,9 +247,7 @@
                 target="_blank"
                 >PoE2 Wiki</a
             >
-            | Showing all modifiers (prefixes and suffixes) with descriptions
-            for each tablet type. Total modifiers:
-            <span id="total-mods">0</span>
+            | Showing all modifiers with descriptions. Total modifiers: <span id="total-mods">0</span>
         </div>
 
         <div class="tablet-grid" id="tablet-grid">
@@ -268,7 +260,9 @@
 
             async function loadData() {
                 try {
-                    const res = await fetch(`${API}/api/reports/mod-reference`);
+                    const res = await fetch(
+                        `${API}/api/reports/mod-reference-separated`,
+                    );
                     if (res.ok) {
                         allData = await res.json();
                         renderTablets();
@@ -282,43 +276,66 @@
                 const grid = document.getElementById("tablet-grid");
                 const allMods = allData.reduce(
                     (sum, tablet) => sum + (tablet.mod_count || 0),
-                    0,
+                    0
                 );
                 document.getElementById("total-mods").textContent = allMods;
 
                 grid.innerHTML = allData
                     .map((tablet) => {
                         const totalMods = tablet.mod_count || 0;
+                        const prefixCount = tablet.prefix_count || 0;
+                        const suffixCount = tablet.suffix_count || 0;
 
-                        const suffixGroups = tablet.suffix_groups || {};
-                        const htmlGroups = Object.entries(suffixGroups)
-                            .map(([group, mods]) => {
-                                return `
-                            <div class="mod-group">
-                                <div class="mod-group-title">${group}</div>
-                                ${mods
-                                    .map(
-                                        (m) => `
+                        const prefixes = tablet.prefixes || {};
+                        const suffixes = tablet.suffixes || {};
+
+                        const renderModGroup = (group, mods, type) => {
+                            const badge = type === 'prefix'
+                                ? '<span class="mod-type-badge prefix-badge">Prefix</span>'
+                                : '<span class="mod-type-badge suffix-badge">Suffix</span>';
+                            return `
+                                <div class="mod-group">
+                                    <div class="mod-group-title">
+                                        ${badge}
+                                        ${group}
+                                    </div>
+                                    ${mods
+                                        .map(
+                                            (m) => `
                                     <div class="mod-item">
                                         <strong>${m.name}</strong>
                                         <span class="mod-description"> - ${m.description}</span>
                                     </div>
                                 `,
-                                    )
-                                    .join("")}
-                            </div>
-                        `;
-                            })
+                                        )
+                                        .join("")}
+                                </div>
+                            `;
+                        };
+
+                        const htmlPrefixes = Object.entries(prefixes)
+                            .map(([group, mods]) => renderModGroup(group, mods, 'prefix'))
+                            .join("");
+
+                        const htmlSuffixes = Object.entries(suffixes)
+                            .map(([group, mods]) => renderModGroup(group, mods, 'suffix'))
                             .join("");
 
                         return `
                         <div class="tablet-card">
                             <h3 data-tablet="${tablet.tablet_type}" class="">
                                 ${tablet.tablet_type}
-                                <span class="count-badge">${totalMods} modifiers</span>
+                                <span class="count-badge">${prefixCount} prefixes, ${suffixCount} suffixes</span>
                             </h3>
                             <div class="mod-list">
-                                ${htmlGroups}
+                                <div class="mod-section">
+                                    <div class="mod-section-header">Prefixes (${prefixCount})</div>
+                                    ${htmlPrefixes || '<div class="mod-item empty-message">No prefixes</div>'}
+                                </div>
+                                <div class="mod-section">
+                                    <div class="mod-section-header">Suffixes (${suffixCount})</div>
+                                    ${htmlSuffixes || '<div class="mod-item empty-message">No suffixes</div>'}
+                                </div>
                             </div>
                         </div>
                     `;
@@ -348,37 +365,28 @@
                     grid.querySelectorAll(".mod-group").forEach((group) => {
                         const items = group.querySelectorAll(".mod-item");
                         const hasVisible = Array.from(items).some(
-                            (item) => item.style.display !== "none",
+                            (item) => item.style.display !== "none"
                         );
                         group.style.display = hasVisible ? "block" : "none";
                     });
                 });
 
                 // Add expand-all/collapse-all functionality
-                document
-                    .getElementById("expand-all")
-                    .addEventListener("click", () => {
-                        grid.querySelectorAll(".tablet-card h3").forEach(
-                            (h3) => {
-                                h3.classList.add("expanded");
-                                const modList = h3.nextElementSibling;
-                                if (modList) modList.classList.add("expanded");
-                            },
-                        );
+                document.getElementById("expand-all").addEventListener("click", () => {
+                    grid.querySelectorAll(".tablet-card h3").forEach((h3) => {
+                        h3.classList.add("expanded");
+                        const modList = h3.nextElementSibling;
+                        if (modList) modList.classList.add("expanded");
                     });
+                });
 
-                document
-                    .getElementById("collapse-all")
-                    .addEventListener("click", () => {
-                        grid.querySelectorAll(".tablet-card h3").forEach(
-                            (h3) => {
-                                h3.classList.remove("expanded");
-                                const modList = h3.nextElementSibling;
-                                if (modList)
-                                    modList.classList.remove("expanded");
-                            },
-                        );
+                document.getElementById("collapse-all").addEventListener("click", () => {
+                    grid.querySelectorAll(".tablet-card h3").forEach((h3) => {
+                        h3.classList.remove("expanded");
+                        const modList = h3.nextElementSibling;
+                        if (modList) modList.classList.remove("expanded");
                     });
+                });
             }
 
             loadData();

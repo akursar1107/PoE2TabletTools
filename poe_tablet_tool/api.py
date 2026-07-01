@@ -316,6 +316,12 @@ def api_mod_reference() -> list[dict]:
     return report_builder.mod_reference()
 
 
+@app.get("/api/reports/mod-reference-separated")
+def api_mod_reference_separated() -> list[dict]:
+    """Get all tablet modifiers with prefixes and suffixes separated."""
+    return report_builder.mod_reference_separated()
+
+
 @app.get("/api/reports/mod-reference/{tablet_type}")
 def api_mod_reference_detail(tablet_type: str) -> dict:
     """Get detailed modifiers (prefixes and suffixes) for a specific tablet type."""

@@ -778,3 +778,70 @@ def get_suffixes_summary():
         )
 
     return result
+
+
+def get_modifiers_separated():
+    """Get modifiers with prefixes and suffixes separated for display."""
+    tablets = [
+        "irradiated",
+        "abyss",
+        "breach",
+        "delirium",
+        "expedition",
+        "overseer",
+        "ritual",
+        "temple",
+    ]
+
+    # Build a set of all prefix group names for identification
+    prefix_groups = {p["group"] for p in SHARED_PREFIXES}
+
+    result = []
+    for tablet in tablets:
+        prefixes = {}
+        suffixes = {}
+
+        # Add shared prefixes
+        for prefix in SHARED_PREFIXES:
+            group = prefix["group"]
+            if group not in prefixes:
+                prefixes[group] = []
+            prefixes[group].append(
+                {"name": prefix["name"], "description": prefix["description"]}
+            )
+
+        # Add shared suffixes (skip any that are prefix groups)
+        for group, suffix_mods in SHARED_SUFFIXES.items():
+            if group not in suffixes:
+                suffixes[group] = []
+            suffixes[group].extend(
+                {"name": m["name"], "description": m["description"]} for m in suffix_mods
+            )
+
+        # Add tablet-specific suffixes
+        if tablet in TABLET_SUFFIXES:
+            for entry in TABLET_SUFFIXES[tablet]["unique"]:
+                group = entry["group"]
+                if group not in suffixes:
+                    suffixes[group] = []
+                suffixes[group].extend(
+                    {"name": m["name"], "description": m["description"]}
+                    for m in entry["mods"]
+                )
+
+        # Count total individual modifiers
+        prefix_count = sum(len(m) for m in prefixes.values())
+        suffix_count = sum(len(m) for m in suffixes.values())
+        total_mod_count = prefix_count + suffix_count
+        result.append(
+            {
+                "tablet_type": tablet,
+                "mod_count": total_mod_count,
+                "prefix_count": prefix_count,
+                "suffix_count": suffix_count,
+                "prefixes": prefixes,
+                "suffixes": suffixes,
+            }
+        )
+
+    return result

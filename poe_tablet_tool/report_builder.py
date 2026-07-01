@@ -481,9 +481,19 @@ def mod_reference() -> list[dict]:
     Get all tablet modifier suffixes organized by tablet type.
     Static data from wiki - does not require league_id.
     """
-    from poe_tablet_tool.modifiers_data import get_suffixes_summary
+    from poe_tablet_tool.modifiers_data import get_modifiers_separated
 
-    return get_suffixes_summary()
+    return get_modifiers_separated()
+
+
+def mod_reference_separated() -> list[dict]:
+    """
+    Get all tablet modifiers with prefixes and suffixes separated.
+    Static data from wiki - does not require league_id.
+    """
+    from poe_tablet_tool.modifiers_data import get_modifiers_separated
+
+    return get_modifiers_separated()
 
 
 def mod_reference_detail(tablet_type: str) -> dict:
