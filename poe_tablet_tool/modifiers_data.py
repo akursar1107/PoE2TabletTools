@@ -4,159 +4,143 @@ Source: https://www.poe2wiki.net/wiki/List_of_modifiers_for_tablets
 """
 
 # Shared prefix groups across all tablet types
-SHARED_PREFIXES = {
-    "MapAdditionalExile": {
+# Each prefix has: group, name (the actual modifier name) and description
+SHARED_PREFIXES = [
+    {
+        "group": "MapAdditionalExile",
         "name": "Exiled",
         "description": "Map is inhabited by 1 additional Rogue Exile",
     },
-    "MapMonsterEffectiveness": {
+    {
+        "group": "MapMonsterEffectiveness",
         "name": "Challenger's",
         "description": "Monsters have (10-15)% increased Effectiveness",
     },
-    "MapDroppedGoldIncrease": {
+    {
+        "group": "MapDroppedGoldIncrease",
         "name": "Bountiful",
         "description": "(25-35)% increased Gold found in Map",
     },
-    "MapExperienceGainIncrease": {
+    {
+        "group": "MapExperienceGainIncrease",
         "name": "Elevated",
         "description": "(12-18)% increased Experience gain in Map",
     },
-    "MapAdditionalAzmeriWisp": {
+    {
+        "group": "MapAdditionalAzmeriWisp",
         "name": "Azmeri's",
         "description": "Map contains 1 additional Azmeri Spirit",
     },
-    "MapRarePackIncrease": {
+    {
+        "group": "MapRarePackIncrease",
         "name": "Brimming",
         "description": "Map has (25-35)% increased number of Rare Monsters",
     },
-    "MapPackSizeIncrease": {
+    {
+        "group": "MapPackSizeIncrease",
         "name": "Breeding",
         "description": "(5-7)% increased Pack Size in Map",
     },
-    "MapAdditionalEssence": {
+    {
+        "group": "MapAdditionalEssence",
         "name": "Crystallised",
         "description": "Map contains an additional Essence",
     },
-    "MapDroppedItemRarityIncrease": {
+    {
+        "group": "MapDroppedItemRarityIncrease",
         "name": "Collector's",
         "description": "(8-12)% increased Rarity of Items found in Map",
     },
-    "MapMonsterRarityIncrease": {
+    {
+        "group": "MapMonsterRarityIncrease",
         "name": "Abounding",
         "description": "Map has (15-20)% increased Monster Rarity",
     },
-    "MapMagicPackIncrease": {
+    {
+        "group": "MapMagicPackIncrease",
         "name": "Teeming",
         "description": "Map has (30-40)% increased Magic Monsters",
     },
-    "MapAdditionalStoneCircle": {
+    {
+        "group": "MapAdditionalStoneCircle",
         "name": "Summoner's",
         "description": "Map contains an additional Summoning Circle",
     },
-    "MapAdditionalChests": {
+    {
+        "group": "MapAdditionalChests",
         "name": "Treasurer's",
         "description": "Map contains (2-3) additional Rare Chests",
     },
-}
+]
 
 # Shared suffix groups across all tablet types
+# Each suffix group contains multiple modifiers with name and description
 SHARED_SUFFIXES = {
-    "MapAdditionalShrine": {
-        "mods": [
-            {
-                "name": "of Shrines",
-                "description": "Map has (70-100)% increased chance to contain Shrines",
-            },
-            {
-                "name": "of the Devoted",
-                "description": "Map contains an additional Shrine",
-            },
-        ]
-    },
-    "MapAdditionalStrongbox": {
-        "mods": [
-            {
-                "name": "of the Antiquarian",
-                "description": "Map contains an additional Strongbox",
-            },
-            {
-                "name": "of Strongboxes",
-                "description": "Map has (70-100)% increased chance to contain Strongboxes",
-            },
-        ]
-    },
-    "MapDroppedMapsIncrease": {
-        "mods": [
-            {
-                "name": "of the Cartographer",
-                "description": "(30-40)% increased Quantity of Waystones found in Map",
-            }
-        ]
-    },
-    "MapAdditionalExile": {
-        "mods": [
-            {
-                "name": "of the Exile",
-                "description": "Map has (70-100)% increased chance to contain Rogue Exiles",
-            }
-        ]
-    },
-    "MapAdditionalEssence": {
-        "mods": [
-            {
-                "name": "of the Essence",
-                "description": "Map has (70-100)% increased chance to contain Essences",
-            }
-        ]
-    },
-    "MapAdditionalUniqueMonsterModifier": {
-        "mods": [
-            {
-                "name": "of Contest",
-                "description": "Unique Monsters have 1 additional Rare Modifier",
-            }
-        ]
-    },
-    "MapAdditionalStoneCircle": {
-        "mods": [
-            {
-                "name": "of the Summoning",
-                "description": "Map has (70-100)% increased chance to contain a Summoning Circle",
-            }
-        ]
-    },
-    "MapAdditionalSpirit": {
-        "mods": [
-            {
-                "name": "of Spirits",
-                "description": "Map has (70-100)% increased chance to contain Azmeri Spirits",
-            }
-        ]
-    },
-    "MapAdditionalModifier": {
-        "mods": [
-            {
-                "name": "of Undertaking",
-                "description": "Map has (1-2) additional random Modifiers",
-            }
-        ]
-    },
+    "MapAdditionalShrine": [
+        {
+            "name": "of Shrines",
+            "description": "Map has (70-100)% increased chance to contain Shrines",
+        },
+        {"name": "of the Devoted", "description": "Map contains an additional Shrine"},
+    ],
+    "MapAdditionalStrongbox": [
+        {
+            "name": "of the Antiquarian",
+            "description": "Map contains an additional Strongbox",
+        },
+        {
+            "name": "of Strongboxes",
+            "description": "Map has (70-100)% increased chance to contain Strongboxes",
+        },
+    ],
+    "MapDroppedMapsIncrease": [
+        {
+            "name": "of the Cartographer",
+            "description": "(30-40)% increased Quantity of Waystones found in Map",
+        },
+    ],
+    "MapAdditionalExile": [
+        {
+            "name": "of the Exile",
+            "description": "Map has (70-100)% increased chance to contain Rogue Exiles",
+        },
+    ],
+    "MapAdditionalEssence": [
+        {
+            "name": "of the Essence",
+            "description": "Map has (70-100)% increased chance to contain Essences",
+        },
+    ],
+    "MapAdditionalUniqueMonsterModifier": [
+        {
+            "name": "of Contest",
+            "description": "Unique Monsters have 1 additional Rare Modifier",
+        },
+    ],
+    "MapAdditionalStoneCircle": [
+        {
+            "name": "of the Summoning",
+            "description": "Map has (70-100)% increased chance to contain a Summoning Circle",
+        },
+    ],
+    "MapAdditionalSpirit": [
+        {
+            "name": "of Spirits",
+            "description": "Map has (70-100)% increased chance to contain Azmeri Spirits",
+        },
+    ],
+    "MapAdditionalModifier": [
+        {
+            "name": "of Undertaking",
+            "description": "Map has (1-2) additional random Modifiers",
+        },
+    ],
 }
 
 # Tablet-specific suffixes
 TABLET_SUFFIXES = {
     "irradiated": {
-        "unique": [
-            {
-                "group": "MapAdditionalExile",
-                "mods": [
-                    {
-                        "name": "of the Exile",
-                        "description": "Map has (70-100)% increased chance to contain Rogue Exiles",
-                    }
-                ],
-            },
-        ]
+        "unique": []  # Irradiated only has shared suffixes
     },
     "abyss": {
         "unique": [
@@ -703,7 +687,7 @@ TABLET_SUFFIXES = {
 
 
 def get_all_modifiers():
-    """Get all modifiers organized by tablet type."""
+    """Get all modifiers organized by tablet type with full descriptions."""
     tablets = [
         "irradiated",
         "abyss",
@@ -717,11 +701,11 @@ def get_all_modifiers():
 
     result = {}
     for tablet in tablets:
-        result[tablet] = {"prefixes": list(SHARED_PREFIXES.values()), "suffixes": {}}
+        result[tablet] = {"prefixes": SHARED_PREFIXES, "suffixes": {}}
 
         # Add shared suffixes
-        for group, mods_info in SHARED_SUFFIXES.items():
-            result[tablet]["suffixes"][group] = mods_info["mods"]
+        for group, mods in SHARED_SUFFIXES.items():
+            result[tablet]["suffixes"][group] = mods
 
         # Add tablet-specific suffixes
         if tablet in TABLET_SUFFIXES:
@@ -732,13 +716,13 @@ def get_all_modifiers():
 
 
 def get_modifiers_by_tablet(tablet_type):
-    """Get modifiers for a specific tablet type."""
+    """Get modifiers for a specific tablet type with full descriptions."""
     all_mods = get_all_modifiers()
     return all_mods.get(tablet_type, {})
 
 
 def get_suffixes_summary():
-    """Get a summary of suffix groups per tablet type (for display)."""
+    """Get a summary of prefix and suffix groups per tablet type (for display)."""
     tablets = [
         "irradiated",
         "abyss",
@@ -752,22 +736,44 @@ def get_suffixes_summary():
 
     result = []
     for tablet in tablets:
-        suffixes = {}
+        mods = {}
+
+        # Add shared prefixes
+        for prefix in SHARED_PREFIXES:
+            group = prefix["group"]
+            if group not in mods:
+                mods[group] = []
+            mods[group].append(
+                {"name": prefix["name"], "description": prefix["description"]}
+            )
 
         # Add shared suffixes
-        for group, mods_info in SHARED_SUFFIXES.items():
-            suffixes[group] = [m["name"] for m in mods_info["mods"]]
+        for group, suffix_mods in SHARED_SUFFIXES.items():
+            if group not in mods:
+                mods[group] = []
+            mods[group].extend(
+                {"name": m["name"], "description": m["description"]}
+                for m in suffix_mods
+            )
 
         # Add tablet-specific suffixes
         if tablet in TABLET_SUFFIXES:
             for entry in TABLET_SUFFIXES[tablet]["unique"]:
-                suffixes[entry["group"]] = [m["name"] for m in entry["mods"]]
+                group = entry["group"]
+                if group not in mods:
+                    mods[group] = []
+                mods[group].extend(
+                    {"name": m["name"], "description": m["description"]}
+                    for m in entry["mods"]
+                )
 
+        # Count total individual modifiers
+        total_mod_count = sum(len(m) for m in mods.values())
         result.append(
             {
                 "tablet_type": tablet,
-                "suffix_count": len(suffixes),
-                "suffix_groups": suffixes,
+                "mod_count": total_mod_count,
+                "suffix_groups": mods,
             }
         )
 
