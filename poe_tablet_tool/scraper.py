@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 FETCH_BATCH_SIZE = 10
 MAX_FETCH_IDS = 100
-MAX_RETRIES = 5  # Increased from 3 for better resilience
+MAX_RETRIES = 5
 RETRY_BACKOFF_BASE = 2  # Exponential backoff: 2, 4, 8, 16, 32 seconds
 
 
@@ -30,26 +30,35 @@ def _make_client() -> httpx.Client:
     )
 
 
-def _post_with_retry(
-    client: httpx.Client, url: str, json_body: dict, limiter=None
+def _request_with_retry(
+    client: httpx.Client,
+    method: str,
+    url: str,
+    *,
+    json_body: dict | None = None,
+    limiter=None,
 ) -> dict:
+    """Shared retry wrapper for both GET and POST requests."""
     last_exc = None
     for attempt in range(MAX_RETRIES):
         if limiter:
             limiter.wait_if_needed()
         try:
-            resp = client.post(url, json=json_body)
+            if method == "POST":
+                resp = client.post(url, json=json_body)
+            else:
+                resp = client.get(url)
+
             if limiter:
                 limiter.update_from_headers(resp.headers)
 
-            # Check for rate limiting or server errors
             if resp.status_code in (429, 503):
                 retry_after = int(
                     resp.headers.get("retry-after", RETRY_BACKOFF_BASE**attempt)
                 )
                 if limiter and resp.status_code == 429:
                     limiter.handle_429(retry_after)
-                sleep_time = retry_after + random.uniform(0, 1)  # Add jitter
+                sleep_time = retry_after + random.uniform(0, 1)
                 logger.warning(
                     "Rate limit/server error (%d) on %s, attempt %d/%d, retrying in %.1fs",
                     resp.status_code,
@@ -92,56 +101,9 @@ def _post_with_retry(
             if attempt < MAX_RETRIES - 1:
                 time.sleep(RETRY_BACKOFF_BASE**attempt + random.uniform(0, 1))
 
-    raise RuntimeError(f"Failed after {MAX_RETRIES} attempts: POST {url}") from last_exc
-
-
-def _get_with_retry(client: httpx.Client, url: str, limiter=None) -> dict:
-    last_exc = None
-    for attempt in range(MAX_RETRIES):
-        if limiter:
-            limiter.wait_if_needed()
-        try:
-            resp = client.get(url)
-            if limiter:
-                limiter.update_from_headers(resp.headers)
-            
-            # Check for rate limiting or server errors
-            if resp.status_code in (429, 503):
-                retry_after = int(resp.headers.get("retry-after", RETRY_BACKOFF_BASE ** attempt))
-                if limiter and resp.status_code == 429:
-                    limiter.handle_429(retry_after)
-                sleep_time = retry_after + random.uniform(0, 1)  # Add jitter
-                logger.warning(
-                    "Rate limit/server error (%d) on %s, attempt %d/%d, retrying in %.1fs",
-                    resp.status_code, url, attempt + 1, MAX_RETRIES, sleep_time
-                )
-                time.sleep(sleep_time)
-                continue
-            
-            resp.raise_for_status()
-            data = resp.json()
-            if "error" in data and data["error"]:
-                raise RuntimeError(f"API error: {data['error']}")
-            return data
-        except httpx.HTTPStatusError as exc:
-            last_exc = exc
-            logger.warning("HTTP error (%d) on attempt %d/%d: %s", 
-                          exc.response.status_code if exc.response else 0,
-                          attempt + 1, MAX_RETRIES, exc)
-            if attempt < MAX_RETRIES - 1:
-                time.sleep(RETRY_BACKOFF_BASE ** attempt + random.uniform(0, 1))
-        except httpx.TimeoutError as exc:
-            last_exc = exc
-            logger.warning("Timeout on attempt %d/%d: %s", attempt + 1, MAX_RETRIES, exc)
-            if attempt < MAX_RETRIES - 1:
-                time.sleep(RETRY_BACKOFF_BASE ** attempt + random.uniform(0, 1))
-        except httpx.RequestError as exc:
-            last_exc = exc
-            logger.warning("Request error on attempt %d/%d: %s", attempt + 1, MAX_RETRIES, exc)
-            if attempt < MAX_RETRIES - 1:
-                time.sleep(RETRY_BACKOFF_BASE ** attempt + random.uniform(0, 1))
-    
-    raise RuntimeError(f"Failed after {MAX_RETRIES} attempts: GET {url}") from last_exc
+    raise RuntimeError(
+        f"Failed after {MAX_RETRIES} attempts: {method} {url}"
+    ) from last_exc
 
 
 def search_trade(league: str, query_payload: dict) -> tuple[str, list[str], int]:
@@ -154,7 +116,9 @@ def search_trade(league: str, query_payload: dict) -> tuple[str, list[str], int]
     search_limiter = get_search_limiter()
 
     with _make_client() as client:
-        data = _post_with_retry(client, url, query_payload, limiter=search_limiter)
+        data = _request_with_retry(
+            client, "POST", url, json_body=query_payload, limiter=search_limiter
+        )
 
     query_id: str = data["id"]
     result_ids: list[str] = data.get("result", [])[:MAX_FETCH_IDS]
@@ -187,7 +151,7 @@ def fetch_listings(query_id: str, result_ids: list[str]) -> list[dict[str, Any]]
             url = (
                 f"{settings.trade_base_url}/api/trade2/fetch/{ids_str}?query={query_id}"
             )
-            data = _get_with_retry(client, url, limiter=fetch_limiter)
+            data = _request_with_retry(client, "GET", url, limiter=fetch_limiter)
             results = [r for r in data.get("result", []) if r is not None]
             all_results.extend(results)
             logger.debug(
