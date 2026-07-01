@@ -188,14 +188,29 @@
                 padding: 40px;
                 color: #666;
             }
+            .loading-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.8);
+                display: none;
+                align-items: center;
+                justify-content: center;
+                z-index: 10000;
+            }
+            .loading-overlay.visible {
+                display: flex;
+            }
             .spinner {
-                border: 2px solid #333;
-                border-top: 2px solid #a08050;
+                border: 3px solid #333;
+                border-top: 3px solid #a08050;
                 border-radius: 50%;
-                width: 20px;
-                height: 20px;
+                width: 40px;
+                height: 40px;
                 animation: spin 1s linear infinite;
-                margin-right: 10px;
+                margin-right: 16px;
             }
             @keyframes spin {
                 0% {
@@ -205,13 +220,97 @@
                     transform: rotate(360deg);
                 }
             }
+            .loading-text {
+                font-size: 14px;
+                color: #c8a96e;
+            }
+            #status {
+                font-size: 12px;
+                color: #666;
+            }
+            #status.ok {
+                color: #5a9e5a;
+            }
+            #refresh-bar {
+                height: 2px;
+                background: #a08050;
+                transition: width 0.5s linear;
+                width: 100%;
+            }
+            .tooltip {
+                position: relative;
+            }
+            .tooltip::after {
+                content: attr(data-tooltip);
+                position: absolute;
+                bottom: 100%;
+                left: 50%;
+                transform: translateX(-50%);
+                padding: 6px 12px;
+                background: #2a2a2a;
+                border: 1px solid #3a3a3a;
+                border-radius: 4px;
+                font-size: 11px;
+                color: #c9b99a;
+                white-space: nowrap;
+                opacity: 0;
+                visibility: hidden;
+                transition:
+                    opacity 0.2s,
+                    visibility 0.2s;
+                z-index: 1000;
+                margin-bottom: 8px;
+            }
+            .tooltip:hover::after {
+                opacity: 1;
+                visibility: visible;
+            }
+            .empty-state {
+                text-align: center;
+                padding: 40px 20px;
+                color: #666;
+                font-size: 12px;
+            }
+            .empty-state-icon {
+                font-size: 48px;
+                margin-bottom: 12px;
+                opacity: 0.5;
+            }
         </style>
     </head>
     <body>
         <div id="refresh-bar"></div>
+        <div class="loading-overlay" id="loading-overlay">
+            <div>
+                <div class="spinner"></div>
+                <div class="loading-text">Loading tablet details...</div>
+            </div>
+        </div>
         <header>
             <h1>⬡ Tablet Detail</h1>
-            <span id="status">Static Data</span>
+            <div style="display: flex; align-items: center; gap: 14px">
+                <span id="status">Loading...</span>
+                <button
+                    class="tooltip"
+                    data-tooltip="Refresh data"
+                    onclick="loadData()"
+                    style="
+                        padding: 4px 8px;
+                        background: #2a2a2a;
+                        border: 1px solid #3a3a3a;
+                        color: #c8a96e;
+                        border-radius: 4px;
+                        cursor: pointer;
+                        font-size: 12px;
+                    "
+                >
+                    🔄
+                </button>
+                <span
+                    id="last-updated"
+                    style="font-size: 11px; color: #666"
+                ></span>
+            </div>
         </header>
 
         <div class="top-nav">
@@ -322,6 +421,9 @@
             };
 
             async function loadData() {
+                const loadingOverlay = document.getElementById("loading-overlay");
+                loadingOverlay.classList.add("visible");
+
                 try {
                     const res = await fetch(`${API}/api/reports/mod-reference`);
                     if (res.ok) {
@@ -332,24 +434,46 @@
                         if (currentTablet) {
                             renderPage();
                             isLoading = false;
+                            document.getElementById("status").textContent = "Loaded";
+                            document.getElementById("status").className = "ok";
+                            // Update timestamp
+                            const now = new Date();
+                            const timeStr = now.toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                            });
+                            document.getElementById("last-updated").textContent = timeStr;
                         } else {
                             document.getElementById("tablet-name").textContent =
                                 "Tablet not found";
                             isLoading = false;
+                            showError("Tablet type '" + tabletType + "' not found");
                         }
+                    } else {
+                        showError("Failed to load data: Server returned error " + res.status);
                     }
                 } catch (e) {
                     console.error("Failed to load data:", e);
                     isLoading = false;
-                    // Show error message
-                    document.getElementById("prefixes-loading").innerHTML =
-                        '<div style="color: #cc6666; text-align: center; padding: 20px;">Failed to load data. Please refresh.</div>';
-                    document.getElementById("prefixes-loading").style.display =
-                        "flex";
-                    document.getElementById("suffixes-loading").innerHTML = "";
-                    document.getElementById("suffixes-loading").style.display =
-                        "none";
+                    showError("Failed to load data: " + e.message);
+                } finally {
+                    loadingOverlay.classList.remove("visible");
                 }
+            }
+
+            function showError(message) {
+                document.getElementById("status").textContent = "Error: " + message;
+                document.getElementById("status").className = "";
+                // Hide loading sections and show error
+                document.getElementById("prefixes-loading").innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">⚠️</div>
+                        <div>${message}</div>
+                        <button onclick="loadData()" style="margin-top: 16px; padding: 8px 16px; background: #1a1a1a; border: 1px solid #a08050; color: #c8a96e; border-radius: 4px; cursor: pointer;">Retry</button>
+                    </div>
+                `;
+                document.getElementById("prefixes-loading").style.display = "flex";
+                document.getElementById("suffixes-loading").style.display = "none";
             }
 
             function renderPage() {
@@ -390,7 +514,7 @@
                 const prefixesGrid = document.getElementById("prefixes-grid");
                 const prefixes = currentTablet.prefixes || {};
                 if (Object.keys(prefixes).length === 0) {
-                    prefixesGrid.innerHTML = '<div style="color: #666; text-align: center; padding: 20px; grid-column: 1 / -1;">No prefixes for this tablet type.</div>';
+                    prefixesGrid.innerHTML = '<div class="empty-state" style="grid-column: 1 / -1;"><div class="empty-state-icon">ℹ️</div><div>No prefixes for this tablet type.</div></div>';
                 } else {
                     prefixesGrid.innerHTML = Object.entries(prefixes)
                         .map(
@@ -417,7 +541,7 @@
                 const suffixesGrid = document.getElementById("suffixes-grid");
                 const suffixes = currentTablet.suffixes || {};
                 if (Object.keys(suffixes).length === 0) {
-                    suffixesGrid.innerHTML = '<div style="color: #666; text-align: center; padding: 20px; grid-column: 1 / -1;">No suffixes for this tablet type.</div>';
+                    suffixesGrid.innerHTML = '<div class="empty-state" style="grid-column: 1 / -1;"><div class="empty-state-icon">ℹ️</div><div>No suffixes for this tablet type.</div></div>';
                 } else {
                     suffixesGrid.innerHTML = Object.entries(suffixes)
                     .map(
@@ -450,6 +574,12 @@
             // Show loading indicators while data loads
             document.getElementById("prefixes-loading").style.display = "flex";
             document.getElementById("suffixes-loading").style.display = "flex";
+
+            // Also update the inline loading messages to use spinner
+            const loadingElements = document.querySelectorAll('.loading');
+            loadingElements.forEach(el => {
+                el.innerHTML = '<div class="spinner"></div> Loading...';
+            });
 
             loadData();
         </script>

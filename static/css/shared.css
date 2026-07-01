@@ -1,0 +1,303 @@
+/* Shared CSS for PoE2 Tablet Tool */
+/* This file contains common styles used across all pages */
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background: #0e0e0e;
+    color: #c9b99a;
+    font-family: "Segoe UI", sans-serif;
+    font-size: 13px;
+}
+
+/* Header Styles */
+header {
+    padding: 14px 24px;
+    border-bottom: 1px solid #2a2a2a;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+header h1 {
+    font-size: 17px;
+    color: #e8d5a3;
+    letter-spacing: 1px;
+}
+
+#status {
+    font-size: 12px;
+    color: #666;
+}
+
+#status.ok {
+    color: #5a9e5a;
+}
+
+#refresh-bar {
+    height: 2px;
+    background: #a08050;
+    transition: width 0.5s linear;
+    width: 100%;
+}
+
+/* Top Navigation */
+.top-nav {
+    background: #1a1a1a;
+    border-bottom: 1px solid #2a2a2a;
+    padding: 8px 24px;
+    display: flex;
+    gap: 24px;
+}
+
+.top-nav a {
+    color: #888;
+    text-decoration: none;
+    font-size: 12px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.top-nav a:hover {
+    color: #c8a96e;
+    background: #2a2a2a;
+}
+
+.top-nav a.active {
+    color: #c8a96e;
+    background: #2a2a2a;
+}
+
+/* Loading Overlay */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+}
+
+.loading-overlay.visible {
+    display: flex;
+}
+
+.spinner {
+    border: 3px solid #333;
+    border-top: 3px solid #a08050;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin-right: 16px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+    font-size: 14px;
+    color: #c8a96e;
+}
+
+/* Empty States */
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #666;
+    font-size: 12px;
+}
+
+.empty-state-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+    opacity: 0.5;
+}
+
+/* Tooltip Styles */
+.tooltip {
+    position: relative;
+}
+
+.tooltip::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 6px 12px;
+    background: #2a2a2a;
+    border: 1px solid #3a3a3a;
+    border-radius: 4px;
+    font-size: 11px;
+    color: #c9b99a;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s, visibility 0.2s;
+    z-index: 1000;
+    margin-bottom: 8px;
+}
+
+.tooltip:hover::after {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Percentage Change Indicators */
+.pct-change {
+    display: inline-block;
+    font-size: 11px;
+    margin-left: 4px;
+}
+
+.pct-change.positive {
+    color: #5a9e5a;
+}
+
+.pct-change.negative {
+    color: #cc6666;
+}
+
+.pct-change span {
+    font-size: 10px;
+}
+
+/* Category Badges */
+.category-badge {
+    font-size: 10px;
+    padding: 1px 4px;
+    border-radius: 2px;
+    margin-right: 4px;
+    display: inline-block;
+}
+
+.category-General { color: #888; background: rgba(136, 136, 136, 0.15); }
+.category-Abyss { color: #9966cc; background: rgba(153, 102, 204, 0.15); }
+.category-Breach { color: #cc6666; background: rgba(204, 102, 102, 0.15); }
+.category-Delirium { color: #cc6699; background: rgba(204, 102, 153, 0.15); }
+.category-Expedition { color: #999966; background: rgba(153, 153, 102, 0.15); }
+.category-Ritual { color: #6699cc; background: rgba(102, 153, 204, 0.15); }
+.category-Temple { color: #996633; background: rgba(153, 102, 51, 0.15); }
+.category-Boss { color: #cc9966; background: rgba(204, 153, 102, 0.15); }
+.category-Monsters { color: #cc6633; background: rgba(204, 102, 51, 0.15); }
+.category-Items { color: #66cc99; background: rgba(102, 204, 153, 0.15); }
+.category-Containers { color: #999966; background: rgba(153, 153, 102, 0.15); }
+.category-Shrines { color: #66cccc; background: rgba(102, 204, 204, 0.15); }
+.category-Spirit { color: #9966cc; background: rgba(153, 102, 204, 0.15); }
+.category-Essence { color: #cc99cc; background: rgba(204, 153, 204, 0.15); }
+.category-Maps { color: #669966; background: rgba(102, 153, 102, 0.15); }
+.category-Currency { color: #cccc66; background: rgba(204, 204, 102, 0.15); }
+.category-Progression { color: #66cc66; background: rgba(102, 204, 102, 0.15); }
+
+/* Mod Type Badges */
+.mod-type-badge {
+    font-size: 10px;
+    padding: 1px 4px;
+    border-radius: 2px;
+    font-weight: bold;
+}
+
+.prefix-badge {
+    color: #996666;
+    background: rgba(153, 102, 102, 0.15);
+}
+
+.suffix-badge {
+    color: #669966;
+    background: rgba(102, 153, 102, 0.15);
+}
+
+/* Rare Modifier Highlighting */
+.mod-item.rare {
+    border-left-color: #a08050;
+    background: rgba(160, 128, 80, 0.05);
+}
+
+.mod-item.rare:hover {
+    background: rgba(160, 128, 80, 0.1);
+}
+
+/* Copy Text Styling */
+.copy-text {
+    cursor: pointer;
+}
+
+.copy-text:hover {
+    opacity: 0.8;
+}
+
+/* Favorites Star */
+.fav-star {
+    cursor: pointer;
+    margin-left: 8px;
+    color: #666;
+    font-size: 14px;
+    transition: color 0.2s;
+}
+
+.fav-star:hover {
+    color: #ffcc00;
+}
+
+.fav-star.favorited {
+    color: #ffcc00;
+}
+
+/* Common Button Styles */
+button {
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    color: #c9b99a;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #2a2a2a;
+    border-color: #a08050;
+}
+
+button.secondary {
+    background: transparent;
+    border-color: #3a3a3a;
+    color: #888;
+}
+
+button.secondary:hover {
+    background: #2a2a2a;
+    color: #c8a96e;
+}
+
+button.danger {
+    border-color: #884444;
+    color: #cc6666;
+}
+
+button.danger:hover {
+    background: #884444;
+    color: #ffaaaa;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .tablet-grid, .favorites-grid, .comparison-container {
+        grid-template-columns: 1fr;
+    }
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}

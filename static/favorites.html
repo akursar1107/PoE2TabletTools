@@ -155,17 +155,127 @@
             .info-text a {
                 color: #888;
             }
+            .loading-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.8);
+                display: none;
+                align-items: center;
+                justify-content: center;
+                z-index: 10000;
+            }
+            .loading-overlay.visible {
+                display: flex;
+            }
+            .spinner {
+                border: 3px solid #333;
+                border-top: 3px solid #a08050;
+                border-radius: 50%;
+                width: 40px;
+                height: 40px;
+                animation: spin 1s linear infinite;
+                margin-right: 16px;
+            }
+            @keyframes spin {
+                0% {
+                    transform: rotate(0deg);
+                }
+                100% {
+                    transform: rotate(360deg);
+                }
+            }
+            .loading-text {
+                font-size: 14px;
+                color: #c8a96e;
+            }
+            #status {
+                font-size: 12px;
+                color: #666;
+            }
+            #status.ok {
+                color: #5a9e5a;
+            }
+            #refresh-bar {
+                height: 2px;
+                background: #a08050;
+                transition: width 0.5s linear;
+                width: 100%;
+            }
+            .tooltip {
+                position: relative;
+            }
+            .tooltip::after {
+                content: attr(data-tooltip);
+                position: absolute;
+                bottom: 100%;
+                left: 50%;
+                transform: translateX(-50%);
+                padding: 6px 12px;
+                background: #2a2a2a;
+                border: 1px solid #3a3a3a;
+                border-radius: 4px;
+                font-size: 11px;
+                color: #c9b99a;
+                white-space: nowrap;
+                opacity: 0;
+                visibility: hidden;
+                transition:
+                    opacity 0.2s,
+                    visibility 0.2s;
+                z-index: 1000;
+                margin-bottom: 8px;
+            }
+            .tooltip:hover::after {
+                opacity: 1;
+                visibility: visible;
+            }
             @media (max-width: 768px) {
-                .controls { flex-direction: column; align-items: stretch; }
-                .favorites-grid { grid-template-columns: 1fr; }
+                .controls {
+                    flex-direction: column;
+                    align-items: stretch;
+                }
+                .favorites-grid {
+                    grid-template-columns: 1fr;
+                }
             }
         </style>
     </head>
     <body>
         <div id="refresh-bar"></div>
+        <div class="loading-overlay" id="loading-overlay">
+            <div>
+                <div class="spinner"></div>
+                <div class="loading-text">Loading favorites...</div>
+            </div>
+        </div>
         <header>
             <h1>⬡ Tablet Favorites</h1>
-            <span id="status">Static Data</span>
+            <div style="display: flex; align-items: center; gap: 14px">
+                <span id="status">Static Data</span>
+                <button
+                    class="tooltip"
+                    data-tooltip="Refresh data"
+                    onclick="loadData()"
+                    style="
+                        padding: 4px 8px;
+                        background: #2a2a2a;
+                        border: 1px solid #3a3a3a;
+                        color: #c8a96e;
+                        border-radius: 4px;
+                        cursor: pointer;
+                        font-size: 12px;
+                    "
+                >
+                    🔄
+                </button>
+                <span
+                    id="last-updated"
+                    style="font-size: 11px; color: #666"
+                ></span>
+            </div>
         </header>
 
         <div class="top-nav">
@@ -179,21 +289,48 @@
 
         <div class="container">
             <div class="info-text">
-                <strong>Favorites</strong> - Bookmark modifiers for quick access.
-                Click the star icon on any modifier in the Modifiers page to add it here.
+                <strong>Favorites</strong> - Bookmark modifiers for quick
+                access. Click the star icon on any modifier in the Modifiers
+                page to add it here.
             </div>
 
             <div class="controls">
-                <button onclick="exportFavorites()">📥 Export Favorites</button>
-                <button class="secondary" onclick="importFavorites()">📤 Import Favorites</button>
-                <input type="file" id="import-file" accept=".json" style="display: none;" />
-                <button class="danger" onclick="clearFavorites()">🗑️ Clear All</button>
+                <button
+                    class="tooltip"
+                    data-tooltip="Export all favorites to a JSON file"
+                    onclick="exportFavorites()"
+                >
+                    📥 Export Favorites
+                </button>
+                <button
+                    class="secondary tooltip"
+                    data-tooltip="Import favorites from a JSON file"
+                    onclick="importFavorites()"
+                >
+                    📤 Import Favorites
+                </button>
+                <input
+                    type="file"
+                    id="import-file"
+                    accept=".json"
+                    style="display: none"
+                />
+                <button
+                    class="danger tooltip"
+                    data-tooltip="Clear all favorites (cannot be undone)"
+                    onclick="clearFavorites()"
+                >
+                    🗑️ Clear All
+                </button>
             </div>
 
             <div class="favorites-grid" id="favorites-grid">
                 <div class="empty-state">
                     <div class="empty-state-icon">⭐</div>
-                    <p>No favorites yet. Visit the Modifiers page and click the star on any modifier to add it here.</p>
+                    <p>
+                        No favorites yet. Visit the Modifiers page and click the
+                        star on any modifier to add it here.
+                    </p>
                 </div>
             </div>
         </div>
@@ -201,33 +338,84 @@
         <script>
             const API = window.location.origin || "http://localhost:8001";
             let allData = [];
-            let favorites = JSON.parse(localStorage.getItem('tabletFavorites') || '{}');
+            let favorites = JSON.parse(
+                localStorage.getItem("tabletFavorites") || "{}",
+            );
 
             // Load all modifier data
             async function loadData() {
+                const loadingOverlay =
+                    document.getElementById("loading-overlay");
+                loadingOverlay.classList.add("visible");
+
                 try {
-                    const res = await fetch(`${API}/api/reports/mod-reference-separated`);
+                    const res = await fetch(
+                        `${API}/api/reports/mod-reference-separated`,
+                    );
                     if (res.ok) {
                         allData = await res.json();
                         renderFavorites();
+                        document.getElementById("status").textContent =
+                            "Loaded";
+                        document.getElementById("status").className = "ok";
+                        // Update timestamp
+                        const now = new Date();
+                        const timeStr = now.toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                        });
+                        document.getElementById("last-updated").textContent =
+                            timeStr;
+                    } else {
+                        showError(
+                            "Failed to load data: Server returned error " +
+                                res.status,
+                        );
                     }
                 } catch (e) {
                     console.error("Failed to load data:", e);
+                    showError("Failed to load data: " + e.message);
+                } finally {
+                    loadingOverlay.classList.remove("visible");
                 }
             }
 
+            function showError(message) {
+                const grid = document.getElementById("favorites-grid");
+                const existingEmpty = grid.querySelector(".error-state");
+                if (!existingEmpty) {
+                    grid.innerHTML = `
+                        <div class="empty-state error-state">
+                            <div class="empty-state-icon">⚠️</div>
+                            <div>${message}</div>
+                            <button onclick="loadData()" style="margin-top: 16px; padding: 8px 16px; background: #1a1a1a; border: 1px solid #a08050; color: #c8a96e; border-radius: 4px; cursor: pointer;">Retry</button>
+                        </div>
+                    `;
+                }
+                document.getElementById("status").textContent =
+                    "Error: " + message;
+                document.getElementById("status").className = "";
+            }
+
             function renderFavorites() {
-                const grid = document.getElementById('favorites-grid');
+                const grid = document.getElementById("favorites-grid");
 
                 // Group favorites by tablet type
                 const favoritesByTablet = {};
                 Object.entries(favorites).forEach(([key, value]) => {
                     if (!value) return;
-                    const [tabletType, group, modName] = key.split('|');
+                    const [tabletType, group, modName] = key.split("|");
                     if (!favoritesByTablet[tabletType]) {
-                        favoritesByTablet[tabletType] = { mods: [], tabletType };
+                        favoritesByTablet[tabletType] = {
+                            mods: [],
+                            tabletType,
+                        };
                     }
-                    favoritesByTablet[tabletType].mods.push({ group, modName, key });
+                    favoritesByTablet[tabletType].mods.push({
+                        group,
+                        modName,
+                        key,
+                    });
                 });
 
                 if (Object.keys(favoritesByTablet).length === 0) {
@@ -241,14 +429,23 @@
                 }
 
                 grid.innerHTML = Object.values(favoritesByTablet)
-                    .map(tablet => {
-                        const tabletData = allData.find(t => t.tablet_type === tablet.tabletType);
-                        const modsList = tablet.mods.map(fav => {
-                            const modInfo = getModInfo(tablet.tabletType, fav.group, fav.modName);
-                            return modInfo ?
-                                `<span class="fav-mod-tag" title="${modInfo.description}" onclick="removeFavorite('${fav.key}')">` +
-                                `⭐ ${modInfo.name}</span>` : '';
-                        }).join('');
+                    .map((tablet) => {
+                        const tabletData = allData.find(
+                            (t) => t.tablet_type === tablet.tabletType,
+                        );
+                        const modsList = tablet.mods
+                            .map((fav) => {
+                                const modInfo = getModInfo(
+                                    tablet.tabletType,
+                                    fav.group,
+                                    fav.modName,
+                                );
+                                return modInfo
+                                    ? `<span class="fav-mod-tag" title="${modInfo.description}" onclick="removeFavorite('${fav.key}')">` +
+                                          `⭐ ${modInfo.name}</span>`
+                                    : "";
+                            })
+                            .join("");
 
                         return `
                             <div class="fav-card">
@@ -262,11 +459,13 @@
                             </div>
                         `;
                     })
-                    .join('');
+                    .join("");
             }
 
             function getModInfo(tabletType, group, modName) {
-                const tablet = allData.find(t => t.tablet_type === tabletType);
+                const tablet = allData.find(
+                    (t) => t.tablet_type === tabletType,
+                );
                 if (!tablet) return null;
 
                 const allGroups = { ...tablet.prefixes, ...tablet.suffixes };
@@ -274,7 +473,7 @@
                 if (!groupData) return null;
 
                 const mods = groupData.mods || groupData;
-                return mods.find(m => m.name === modName);
+                return mods.find((m) => m.name === modName);
             }
 
             function toggleFavorite(tabletType, group, modName) {
@@ -284,67 +483,88 @@
                 } else {
                     favorites[key] = true;
                 }
-                localStorage.setItem('tabletFavorites', JSON.stringify(favorites));
+                localStorage.setItem(
+                    "tabletFavorites",
+                    JSON.stringify(favorites),
+                );
                 renderFavorites();
             }
 
             function removeFavorite(key) {
                 delete favorites[key];
-                localStorage.setItem('tabletFavorites', JSON.stringify(favorites));
+                localStorage.setItem(
+                    "tabletFavorites",
+                    JSON.stringify(favorites),
+                );
                 renderFavorites();
             }
 
             function removeAllFromTablet(tabletType) {
-                Object.keys(favorites).forEach(key => {
+                Object.keys(favorites).forEach((key) => {
                     if (key.startsWith(`${tabletType}|`)) {
                         delete favorites[key];
                     }
                 });
-                localStorage.setItem('tabletFavorites', JSON.stringify(favorites));
+                localStorage.setItem(
+                    "tabletFavorites",
+                    JSON.stringify(favorites),
+                );
                 renderFavorites();
             }
 
             function clearFavorites() {
-                if (confirm('Are you sure you want to clear all favorites?')) {
+                if (confirm("Are you sure you want to clear all favorites?")) {
                     favorites = {};
-                    localStorage.setItem('tabletFavorites', JSON.stringify(favorites));
+                    localStorage.setItem(
+                        "tabletFavorites",
+                        JSON.stringify(favorites),
+                    );
                     renderFavorites();
                 }
             }
 
             function exportFavorites() {
                 const data = JSON.stringify(favorites, null, 2);
-                const blob = new Blob([data], { type: 'application/json' });
+                const blob = new Blob([data], { type: "application/json" });
                 const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
+                const a = document.createElement("a");
                 a.href = url;
-                a.download = 'tablet-favorites.json';
+                a.download = "tablet-favorites.json";
                 a.click();
                 URL.revokeObjectURL(url);
             }
 
             function importFavorites() {
-                document.getElementById('import-file').click();
+                document.getElementById("import-file").click();
             }
 
-            document.getElementById('import-file').addEventListener('change', (e) => {
-                const file = e.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = (event) => {
-                        try {
-                            const imported = JSON.parse(event.target.result);
-                            favorites = { ...favorites, ...imported };
-                            localStorage.setItem('tabletFavorites', JSON.stringify(favorites));
-                            renderFavorites();
-                            e.target.value = '';
-                        } catch (err) {
-                            alert('Invalid file format. Please import a valid JSON file.');
-                        }
-                    };
-                    reader.readAsText(file);
-                }
-            });
+            document
+                .getElementById("import-file")
+                .addEventListener("change", (e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                            try {
+                                const imported = JSON.parse(
+                                    event.target.result,
+                                );
+                                favorites = { ...favorites, ...imported };
+                                localStorage.setItem(
+                                    "tabletFavorites",
+                                    JSON.stringify(favorites),
+                                );
+                                renderFavorites();
+                                e.target.value = "";
+                            } catch (err) {
+                                alert(
+                                    "Invalid file format. Please import a valid JSON file.",
+                                );
+                            }
+                        };
+                        reader.readAsText(file);
+                    }
+                });
 
             // Make toggleFavorite available globally for modifiers.html
             window.toggleFavorite = toggleFavorite;
