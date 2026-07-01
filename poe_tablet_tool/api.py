@@ -334,3 +334,11 @@ def modifiers_dashboard() -> FileResponse:
     if not path.is_file():
         raise HTTPException(status_code=404, detail="modifiers.html not found")
     return FileResponse(path)
+
+
+@app.get("/tablet/{tablet_type}")
+def tablet_detail(tablet_type: str) -> FileResponse:
+    path = STATIC_DIR / "tablet_detail.html"
+    if not path.is_file():
+        raise HTTPException(status_code=404, detail="tablet_detail.html not found")
+    return FileResponse(path)

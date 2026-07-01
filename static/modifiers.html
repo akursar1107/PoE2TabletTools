@@ -368,7 +368,9 @@
                         return `
                         <div class="tablet-card">
                             <h3 data-tablet="${tablet.tablet_type}" class="">
-                                ${tablet.tablet_type}
+                                <a href="/tablet/${tablet.tablet_type}" style="color: inherit; text-decoration: none; display: flex; align-items: center; gap: 8px; flex: 1;">
+                                    ${tablet.tablet_type}
+                                </a>
                                 <span class="count-badge">${prefixCount} prefixes, ${suffixCount} suffixes</span>
                             </h3>
                             <div class="mod-list">
@@ -386,12 +388,20 @@
                     })
                     .join("");
 
-                // Add click handlers
-                grid.querySelectorAll(".tablet-card h3").forEach((h3) => {
-                    h3.addEventListener("click", () => {
-                        h3.classList.toggle("expanded");
-                        const modList = h3.nextElementSibling;
-                        modList.classList.toggle("expanded");
+                // Add click handlers to the card itself, not the h3 (since h3 has a link)
+                grid.querySelectorAll(".tablet-card").forEach((card) => {
+                    const h3 = card.querySelector("h3");
+                    const modList = card.querySelector(".mod-list");
+
+                    // Click on card (not on the link) toggles expand
+                    card.addEventListener("click", (e) => {
+                        if (
+                            e.target.tagName !== "A" &&
+                            !e.target.closest("a")
+                        ) {
+                            h3.classList.toggle("expanded");
+                            modList.classList.toggle("expanded");
+                        }
                     });
                 });
 
