@@ -10,7 +10,9 @@ Run:
 """
 
 import logging
+from dataclasses import dataclass
 from datetime import datetime, timezone
+from threading import Lock
 
 from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.triggers.interval import IntervalTrigger
@@ -42,39 +44,123 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-_current_league_name: str = ""
-_current_league_id: int = 0
+
+@dataclass
+class _LeagueState:
+    name: str = ""
+    id: int = 0
+
+
+_league_state = _LeagueState()
+_league_lock = Lock()
+
+
+def get_current_league() -> tuple[str, int]:
+    """Thread-safe getter for the active league name and DB id."""
+    with _league_lock:
+        return _league_state.name, _league_state.id
 
 
 def _run_scheduled_analytics() -> None:
-    if _current_league_id:
-        run_all_analytics(_current_league_id)
+    _, league_id = get_current_league()
+    if league_id:
+        run_all_analytics(league_id)
 
 
 def _detect_and_sync_league() -> tuple[str, int]:
-    global _current_league_name, _current_league_id
-
     new_name = detect_league()
 
-    if _current_league_name and new_name != _current_league_name:
-        logger.warning(
-            "League changed: %s → %s. Archiving and resetting.",
-            _current_league_name,
-            new_name,
-        )
-        reset_for_new_league(_current_league_name)
-        init_db()
+    with _league_lock:
+        old_name = _league_state.name
+        if old_name and new_name != old_name:
+            logger.warning(
+                "League changed: %s → %s. Archiving and resetting.",
+                old_name,
+                new_name,
+            )
+            reset_for_new_league(old_name)
+            init_db()
 
-    _current_league_name = new_name
-    _current_league_id = ensure_league_in_db(new_name)
-    refresh_rates(_current_league_id)
-    return _current_league_name, _current_league_id
+        _league_state.name = new_name
+        _league_state.id = ensure_league_in_db(new_name)
+        refresh_rates(_league_state.id)
+        return _league_state.name, _league_state.id
+
+
+def _build_payloads(
+    tablet, league_name: str, query_mode: str
+) -> tuple[dict, dict, str]:
+    """Build asc + desc query payloads and return (payload_asc, payload_desc, query_hash)."""
+    if query_mode == RARE_MODE:
+        payload_asc, query_hash = build_rare_query(tablet, league_name, sort="asc")
+        payload_desc, _ = build_rare_query(tablet, league_name, sort="desc")
+    elif query_mode == MAGIC_MODE:
+        payload_asc, query_hash = build_magic_query(tablet, league_name, sort="asc")
+        payload_desc, _ = build_magic_query(tablet, league_name, sort="desc")
+    else:
+        payload_asc, query_hash = build_normal_query(tablet, league_name, sort="asc")
+        payload_desc, _ = build_normal_query(tablet, league_name, sort="desc")
+    return payload_asc, payload_desc, query_hash
+
+
+def _execute_snapshot(
+    tablet_key: str, query_mode: str, league_name: str, league_id: int
+) -> dict:
+    """
+    Core snapshot pipeline: build queries → scrape → parse → store → diff.
+    Returns a result dict consumed by both the scheduler job and the manual trigger.
+    """
+    tablet = TABLET_TYPES[tablet_key]
+    payload_asc, payload_desc, query_hash = _build_payloads(tablet, league_name, query_mode)
+
+    raw_results, total_count, fetched_count = search_and_fetch_dual(
+        league_name, payload_asc, payload_desc
+    )
+
+    if not raw_results:
+        return {
+            "tablet_type": tablet_key,
+            "query_mode": query_mode,
+            "listings_stored": 0,
+            "total_count": total_count,
+            "fetched_count": fetched_count,
+            "disappeared": 0,
+            "snapshot_id": None,
+            "status": "empty",
+        }
+
+    parsed = filter_for_query_mode(parse_all(raw_results), query_mode)
+
+    snapshot_id = create_snapshot(
+        league_id=league_id,
+        tablet_type=tablet_key,
+        query_mode=query_mode,
+        query_hash=query_hash,
+        listing_count=len(parsed),
+        total_count=total_count,
+        fetched_count=fetched_count,
+    )
+
+    store_listings(snapshot_id, league_id, tablet_key, query_mode, parsed)
+    disappeared = diff_snapshots(league_id, tablet_key, query_mode, snapshot_id)
+
+    record_success(tablet_key, query_mode, len(parsed), total_count, fetched_count)
+
+    return {
+        "tablet_type": tablet_key,
+        "query_mode": query_mode,
+        "listings_stored": len(parsed),
+        "total_count": total_count,
+        "fetched_count": fetched_count,
+        "disappeared": disappeared,
+        "snapshot_id": snapshot_id,
+        "status": "success",
+    }
 
 
 def run_snapshot_job(tablet_key: str, query_mode: str) -> None:
     tablet = TABLET_TYPES[tablet_key]
-    league_name = _current_league_name
-    league_id = _current_league_id
+    league_name, league_id = get_current_league()
 
     if not league_name or not league_id:
         logger.warning(
@@ -85,60 +171,16 @@ def run_snapshot_job(tablet_key: str, query_mode: str) -> None:
     logger.info("▶ Starting snapshot: %s / %s", tablet.label, query_mode)
 
     try:
-        if query_mode == RARE_MODE:
-            payload_asc, query_hash = build_rare_query(tablet, league_name, sort="asc")
-            payload_desc, _ = build_rare_query(tablet, league_name, sort="desc")
-        elif query_mode == MAGIC_MODE:
-            payload_asc, query_hash = build_magic_query(tablet, league_name, sort="asc")
-            payload_desc, _ = build_magic_query(tablet, league_name, sort="desc")
-        else:
-            payload_asc, query_hash = build_normal_query(
-                tablet, league_name, sort="asc"
-            )
-            payload_desc, _ = build_normal_query(tablet, league_name, sort="desc")
-
-        raw_results, total_count, fetched_count = search_and_fetch_dual(
-            league_name, payload_asc, payload_desc
-        )
-
-        if not raw_results:
-            logger.info("No results for %s/%s", tablet_key, query_mode)
-            record_success(tablet_key, query_mode, 0, total_count, fetched_count)
-            return
-
-        parsed = filter_for_query_mode(parse_all(raw_results), query_mode)
-
-        snapshot_id = create_snapshot(
-            league_id=league_id,
-            tablet_type=tablet_key,
-            query_mode=query_mode,
-            query_hash=query_hash,
-            listing_count=len(parsed),
-            total_count=total_count,
-            fetched_count=fetched_count,
-        )
-
-        store_listings(snapshot_id, league_id, tablet_key, query_mode, parsed)
-        disappeared = diff_snapshots(league_id, tablet_key, query_mode, snapshot_id)
-
-        record_success(
-            tablet_key,
-            query_mode,
-            len(parsed),
-            total_count,
-            fetched_count,
-        )
-
+        result = _execute_snapshot(tablet_key, query_mode, league_name, league_id)
         logger.info(
             "✔ Done: %s/%s — %d stored (%d fetched/%d total), %d disappeared",
             tablet.label,
             query_mode,
-            len(parsed),
-            fetched_count,
-            total_count,
-            disappeared,
+            result["listings_stored"],
+            result["fetched_count"],
+            result["total_count"],
+            result["disappeared"],
         )
-
     except Exception as exc:
         logger.exception("✘ Job failed: %s/%s", tablet_key, query_mode)
         record_failure(tablet_key, query_mode, str(exc))
@@ -180,78 +222,13 @@ def run_single_snapshot_job(tablet_key: str, query_mode: str) -> dict:
     Run a single snapshot job manually (for backfill or debugging).
     Returns result summary.
     """
-    tablet = TABLET_TYPES[tablet_key]
-    league_name = _current_league_name
-    league_id = _current_league_id
+    league_name, league_id = get_current_league()
 
     if not league_name or not league_id:
         return {"error": "League not initialized"}
 
     try:
-        if query_mode == RARE_MODE:
-            payload_asc, query_hash = build_rare_query(tablet, league_name, sort="asc")
-            payload_desc, _ = build_rare_query(tablet, league_name, sort="desc")
-        elif query_mode == MAGIC_MODE:
-            payload_asc, query_hash = build_magic_query(tablet, league_name, sort="asc")
-            payload_desc, _ = build_magic_query(tablet, league_name, sort="desc")
-        else:
-            payload_asc, query_hash = build_normal_query(
-                tablet, league_name, sort="asc"
-            )
-            payload_desc, _ = build_normal_query(tablet, league_name, sort="desc")
-
-        raw_results, total_count, fetched_count = search_and_fetch_dual(
-            league_name, payload_asc, payload_desc
-        )
-
-        if not raw_results:
-            return {
-                "tablet_type": tablet_key,
-                "query_mode": query_mode,
-                "listings": 0,
-                "total": total_count,
-                "fetched": fetched_count,
-                "message": "No results",
-            }
-
-        from poe_tablet_tool.parser import filter_for_query_mode, parse_all
-
-        parsed = filter_for_query_mode(parse_all(raw_results), query_mode)
-
-        from poe_tablet_tool.snapshot_store import create_snapshot, store_listings
-
-        snapshot_id = create_snapshot(
-            league_id=league_id,
-            tablet_type=tablet_key,
-            query_mode=query_mode,
-            query_hash=query_hash,
-            listing_count=len(parsed),
-            total_count=total_count,
-            fetched_count=fetched_count,
-        )
-
-        store_listings(snapshot_id, league_id, tablet_key, query_mode, parsed)
-        disappeared = diff_snapshots(league_id, tablet_key, query_mode, snapshot_id)
-
-        record_success(
-            tablet_key,
-            query_mode,
-            len(parsed),
-            total_count,
-            fetched_count,
-        )
-
-        return {
-            "tablet_type": tablet_key,
-            "query_mode": query_mode,
-            "listings_stored": len(parsed),
-            "total_count": total_count,
-            "fetched_count": fetched_count,
-            "disappeared": disappeared,
-            "snapshot_id": snapshot_id,
-            "status": "success",
-        }
-
+        return _execute_snapshot(tablet_key, query_mode, league_name, league_id)
     except Exception as exc:
         logger.exception("Manual job failed: %s/%s", tablet_key, query_mode)
         record_failure(tablet_key, query_mode, str(exc))
@@ -268,7 +245,8 @@ def main() -> None:
 
     init_db()
     _detect_and_sync_league()
-    logger.info("Active league: %s (id=%d)", _current_league_name, _current_league_id)
+    league_name, league_id = get_current_league()
+    logger.info("Active league: %s (id=%d)", league_name, league_id)
 
     scheduler = BlockingScheduler(timezone="UTC")
 
