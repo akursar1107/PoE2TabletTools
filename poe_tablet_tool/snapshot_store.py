@@ -72,6 +72,35 @@ def create_snapshot(
     return cursor.lastrowid
 
 
+_SQLITE_MAX_PARAMS = 900  # SQLite limit is 999; leave headroom for extra bind params
+
+
+def _chunked_in_query(
+    conn,
+    sql_template: str,
+    items: list,
+    extra_params: list | None = None,
+    chunk_size: int = _SQLITE_MAX_PARAMS,
+) -> list:
+    """
+    Execute a query with a large IN clause by splitting items into safe-sized chunks.
+    sql_template must contain exactly one '{}' placeholder for the IN list.
+    extra_params are appended after the IN list params in each chunk query.
+    """
+    extra = extra_params or []
+    results = []
+    for i in range(0, max(len(items), 1), chunk_size):
+        chunk = items[i : i + chunk_size]
+        if not chunk:
+            break
+        placeholders = ",".join("?" * len(chunk))
+        rows = conn.execute(
+            sql_template.format(placeholders), chunk + extra
+        ).fetchall()
+        results.extend(rows)
+    return results
+
+
 def store_listings(
     snapshot_id: int,
     league_id: int,
@@ -87,15 +116,17 @@ def store_listings(
 
     # Step 1: Bulk fetch existing first_seen_at for all item_ids
     item_ids = [l.item_id for l in listings]
-    existing_rows = conn.execute(
+    existing_rows = _chunked_in_query(
+        conn,
         """
         SELECT item_id, first_seen_at FROM listings
         WHERE item_id IN ({})
           AND league_id = ?
         ORDER BY item_id, id DESC
-        """.format(",".join("?" * len(item_ids))),
-        item_ids + [league_id],
-    ).fetchall()
+        """,
+        item_ids,
+        extra_params=[league_id],
+    )
     # Map item_id to first_seen_at (keep first occurrence per item)
     existing_map = {}
     for row in existing_rows:
@@ -141,35 +172,41 @@ def store_listings(
         listing_data,
     )
 
-    # Step 3: Bulk fetch all new listing IDs
-    new_listing_ids = conn.execute(
-        """
-        SELECT id, item_id FROM listings
-        WHERE snapshot_id = ?
-          AND item_id IN ({})
-        """.format(",".join("?" * len(item_ids))),
-        [snapshot_id] + item_ids,
-    ).fetchall()
+    # Step 3: Bulk fetch all new listing IDs (chunked to avoid SQLite param limit)
+    new_listing_ids = []
+    for i in range(0, max(len(item_ids), 1), _SQLITE_MAX_PARAMS):
+        chunk = item_ids[i : i + _SQLITE_MAX_PARAMS]
+        if not chunk:
+            break
+        rows = conn.execute(
+            "SELECT id, item_id FROM listings WHERE snapshot_id = ? AND item_id IN ({})".format(
+                ",".join("?" * len(chunk))
+            ),
+            [snapshot_id] + chunk,
+        ).fetchall()
+        new_listing_ids.extend(rows)
+
     # Map item_id to listing db id
     listing_id_map = {row["item_id"]: row["id"] for row in new_listing_ids}
 
-    # Step 4: Find which listings need affixes (no existing affixes)
+    # Step 4: Find which listings already have affixes stored
     listing_ids = [row["id"] for row in new_listing_ids]
     if listing_ids:
-        affix_check = conn.execute(
+        affix_rows = _chunked_in_query(
+            conn,
             """
             SELECT listing_id FROM affixes
             WHERE listing_id IN ({})
             GROUP BY listing_id
-            """.format(",".join("?" * len(listing_ids))),
+            """,
             listing_ids,
-        ).fetchall()
-        needs_affixes = {row["listing_id"] for row in affix_check}
+        )
+        has_affixes = {row["listing_id"] for row in affix_rows}
 
-        # Step 5: Bulk insert affixes for listings that need them
+        # Step 5: Bulk insert affixes for listings that don't have them yet
         for listing in listings:
             db_id = listing_id_map.get(listing.item_id)
-            if db_id and db_id not in needs_affixes:
+            if db_id and db_id not in has_affixes:
                 _store_affixes(conn, db_id, listing)
 
     conn.commit()

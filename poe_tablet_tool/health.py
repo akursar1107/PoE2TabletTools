@@ -165,14 +165,15 @@ def get_last_snapshot_times() -> list[dict]:
 
 def get_detailed_health() -> dict:
     """Get comprehensive health status."""
+    jobs = get_all_health()
     return {
         "status": "ok",
         "timestamp": _now(),
         "poe_api": check_poe_api_health(),
         "database": get_db_health(),
         "scheduler": {
-            "jobs": get_all_health(),
-            "total_jobs": len(get_all_health()),
+            "jobs": jobs,
+            "total_jobs": len(jobs),
         },
         "last_snapshots": get_last_snapshot_times(),
     }
