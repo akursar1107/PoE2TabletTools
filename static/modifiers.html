@@ -236,8 +236,46 @@
                 id="filter-input"
                 placeholder="Filter modifiers..."
             />
-            <button id="expand-all" style="padding: 6px 12px; background: #2a2a2a; border: 1px solid #3a3a3a; color: #c9b99a; border-radius: 4px; cursor: pointer; font-size: 12px;">Expand All</button>
-            <button id="collapse-all" style="padding: 6px 12px; background: #2a2a2a; border: 1px solid #3a3a3a; color: #c9b99a; border-radius: 4px; cursor: pointer; font-size: 12px;">Collapse All</button>
+            <button
+                id="expand-all"
+                style="
+                    padding: 6px 12px;
+                    background: #2a2a2a;
+                    border: 1px solid #3a3a3a;
+                    color: #c9b99a;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    font-size: 12px;
+                "
+            >
+                Expand All
+            </button>
+            <button
+                id="collapse-all"
+                style="
+                    padding: 6px 12px;
+                    background: #2a2a2a;
+                    border: 1px solid #3a3a3a;
+                    color: #c9b99a;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    font-size: 12px;
+                "
+            >
+                Collapse All
+            </button>
+        </div>
+        <div class="filter-bar" style="border-top: none; padding-top: 0">
+            <input
+                type="text"
+                id="global-filter-input"
+                placeholder="Global search (all tablets)..."
+                style="width: 300px"
+            />
+            <span
+                id="global-filter-results"
+                style="color: #666; font-size: 12px; margin-left: 12px"
+            ></span>
         </div>
 
         <div class="info-text">
@@ -247,7 +285,8 @@
                 target="_blank"
                 >PoE2 Wiki</a
             >
-            | Showing all modifiers with descriptions. Total modifiers: <span id="total-mods">0</span>
+            | Showing all modifiers with descriptions. Total modifiers:
+            <span id="total-mods">0</span>
         </div>
 
         <div class="tablet-grid" id="tablet-grid">
@@ -276,7 +315,7 @@
                 const grid = document.getElementById("tablet-grid");
                 const allMods = allData.reduce(
                     (sum, tablet) => sum + (tablet.mod_count || 0),
-                    0
+                    0,
                 );
                 document.getElementById("total-mods").textContent = allMods;
 
@@ -290,9 +329,10 @@
                         const suffixes = tablet.suffixes || {};
 
                         const renderModGroup = (group, mods, type) => {
-                            const badge = type === 'prefix'
-                                ? '<span class="mod-type-badge prefix-badge">Prefix</span>'
-                                : '<span class="mod-type-badge suffix-badge">Suffix</span>';
+                            const badge =
+                                type === "prefix"
+                                    ? '<span class="mod-type-badge prefix-badge">Prefix</span>'
+                                    : '<span class="mod-type-badge suffix-badge">Suffix</span>';
                             return `
                                 <div class="mod-group">
                                     <div class="mod-group-title">
@@ -314,11 +354,15 @@
                         };
 
                         const htmlPrefixes = Object.entries(prefixes)
-                            .map(([group, mods]) => renderModGroup(group, mods, 'prefix'))
+                            .map(([group, mods]) =>
+                                renderModGroup(group, mods, "prefix"),
+                            )
                             .join("");
 
                         const htmlSuffixes = Object.entries(suffixes)
-                            .map(([group, mods]) => renderModGroup(group, mods, 'suffix'))
+                            .map(([group, mods]) =>
+                                renderModGroup(group, mods, "suffix"),
+                            )
                             .join("");
 
                         return `
@@ -365,29 +409,89 @@
                     grid.querySelectorAll(".mod-group").forEach((group) => {
                         const items = group.querySelectorAll(".mod-item");
                         const hasVisible = Array.from(items).some(
-                            (item) => item.style.display !== "none"
+                            (item) => item.style.display !== "none",
                         );
                         group.style.display = hasVisible ? "block" : "none";
                     });
                 });
 
                 // Add expand-all/collapse-all functionality
-                document.getElementById("expand-all").addEventListener("click", () => {
-                    grid.querySelectorAll(".tablet-card h3").forEach((h3) => {
-                        h3.classList.add("expanded");
-                        const modList = h3.nextElementSibling;
-                        if (modList) modList.classList.add("expanded");
+                document
+                    .getElementById("expand-all")
+                    .addEventListener("click", () => {
+                        grid.querySelectorAll(".tablet-card h3").forEach(
+                            (h3) => {
+                                h3.classList.add("expanded");
+                                const modList = h3.nextElementSibling;
+                                if (modList) modList.classList.add("expanded");
+                            },
+                        );
                     });
-                });
 
-                document.getElementById("collapse-all").addEventListener("click", () => {
-                    grid.querySelectorAll(".tablet-card h3").forEach((h3) => {
-                        h3.classList.remove("expanded");
-                        const modList = h3.nextElementSibling;
-                        if (modList) modList.classList.remove("expanded");
+                document
+                    .getElementById("collapse-all")
+                    .addEventListener("click", () => {
+                        grid.querySelectorAll(".tablet-card h3").forEach(
+                            (h3) => {
+                                h3.classList.remove("expanded");
+                                const modList = h3.nextElementSibling;
+                                if (modList)
+                                    modList.classList.remove("expanded");
+                            },
+                        );
                     });
-                });
             }
+
+            // Global search functionality
+            let globalSearchTimeout;
+            const globalFilterInput = document.getElementById(
+                "global-filter-input",
+            );
+            const globalFilterResults = document.getElementById(
+                "global-filter-results",
+            );
+
+            globalFilterInput.addEventListener("input", (e) => {
+                clearTimeout(globalSearchTimeout);
+                const query = e.target.value.toLowerCase();
+
+                if (query.length < 2) {
+                    globalFilterResults.textContent = "";
+                    // Reset all tablets to visible
+                    grid.querySelectorAll(".tablet-card").forEach((card) => {
+                        card.style.display = "block";
+                    });
+                    return;
+                }
+
+                globalSearchTimeout = setTimeout(() => {
+                    let matchCount = 0;
+                    grid.querySelectorAll(".tablet-card").forEach((card) => {
+                        const h3 = card.querySelector("h3");
+                        const tabletType = h3.textContent.toLowerCase();
+                        const modList = card.querySelector(".mod-list");
+
+                        if (modList) {
+                            const items = modList.querySelectorAll(".mod-item");
+                            let hasMatch = false;
+                            items.forEach((item) => {
+                                const text = item.textContent.toLowerCase();
+                                if (text.includes(query)) {
+                                    hasMatch = true;
+                                    matchCount++;
+                                }
+                            });
+                            card.style.display = hasMatch ? "block" : "none";
+                        }
+                    });
+
+                    if (matchCount > 0) {
+                        globalFilterResults.textContent = `Found ${matchCount} matches`;
+                    } else {
+                        globalFilterResults.textContent = "No matches found";
+                    }
+                }, 300);
+            });
 
             loadData();
         </script>
