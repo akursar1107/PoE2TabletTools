@@ -354,10 +354,97 @@
             .fav-star.favorited {
                 color: #ffcc00;
             }
+            .loading-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.8);
+                display: none;
+                align-items: center;
+                justify-content: center;
+                z-index: 10000;
+            }
+            .loading-overlay.visible {
+                display: flex;
+            }
+            .spinner {
+                border: 3px solid #333;
+                border-top: 3px solid #a08050;
+                border-radius: 50%;
+                width: 40px;
+                height: 40px;
+                animation: spin 1s linear infinite;
+                margin-right: 16px;
+            }
+            @keyframes spin {
+                0% {
+                    transform: rotate(0deg);
+                }
+                100% {
+                    transform: rotate(360deg);
+                }
+            }
+            .loading-text {
+                font-size: 14px;
+                color: #c8a96e;
+            }
+            .empty-state {
+                text-align: center;
+                padding: 40px 20px;
+                color: #666;
+                font-size: 12px;
+            }
+            .empty-state-icon {
+                font-size: 48px;
+                margin-bottom: 12px;
+                opacity: 0.5;
+            }
+            .tooltip {
+                position: relative;
+            }
+            .tooltip::after {
+                content: attr(data-tooltip);
+                position: absolute;
+                bottom: 100%;
+                left: 50%;
+                transform: translateX(-50%);
+                padding: 6px 12px;
+                background: #2a2a2a;
+                border: 1px solid #3a3a3a;
+                border-radius: 4px;
+                font-size: 11px;
+                color: #c9b99a;
+                white-space: nowrap;
+                opacity: 0;
+                visibility: hidden;
+                transition:
+                    opacity 0.2s,
+                    visibility 0.2s;
+                z-index: 1000;
+                margin-bottom: 8px;
+            }
+            .tooltip:hover::after {
+                opacity: 1;
+                visibility: visible;
+            }
+            .copy-text {
+                cursor: pointer;
+            }
+            .copy-text:hover {
+                opacity: 0.8;
+            }
         </style>
     </head>
     <body>
         <div id="refresh-bar"></div>
+        <div class="loading-overlay" id="loading-overlay">
+            <div>
+                <div class="spinner"></div>
+                <div class="loading-text">Loading modifiers...</div>
+            </div>
+        </div>
         <header>
             <h1>⬡ Tablet Modifiers Reference</h1>
             <span id="status">Static Data</span>
@@ -379,7 +466,27 @@
                 placeholder="Filter modifiers..."
             />
             <button
+                id="refresh-data"
+                class="tooltip"
+                data-tooltip="Refresh data"
+                onclick="loadData()"
+                style="
+                    padding: 6px 12px;
+                    background: #2a2a2a;
+                    border: 1px solid #3a3a3a;
+                    color: #c8a96e;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    font-size: 12px;
+                    margin-left: 8px;
+                "
+            >
+                🔄
+            </button>
+            <button
                 id="expand-all"
+                class="tooltip"
+                data-tooltip="Expand all tablets"
                 style="
                     padding: 6px 12px;
                     background: #2a2a2a;
@@ -388,12 +495,15 @@
                     border-radius: 4px;
                     cursor: pointer;
                     font-size: 12px;
+                    margin-left: 8px;
                 "
             >
                 Expand All
             </button>
             <button
                 id="collapse-all"
+                class="tooltip"
+                data-tooltip="Collapse all tablets"
                 style="
                     padding: 6px 12px;
                     background: #2a2a2a;
@@ -402,6 +512,7 @@
                     border-radius: 4px;
                     cursor: pointer;
                     font-size: 12px;
+                    margin-left: 8px;
                 "
             >
                 Collapse All
@@ -472,6 +583,7 @@
             >
             | Showing all modifiers with descriptions. Total modifiers:
             <span id="total-mods">0</span>
+            | Last updated: <span id="last-updated">Just now</span>
         </div>
 
         <div class="tablet-grid" id="tablet-grid">
@@ -483,6 +595,10 @@
             let allData = [];
 
             async function loadData() {
+                const loadingOverlay =
+                    document.getElementById("loading-overlay");
+                loadingOverlay.classList.add("visible");
+
                 try {
                     const res = await fetch(
                         `${API}/api/reports/mod-reference-separated`,
@@ -490,6 +606,15 @@
                     if (res.ok) {
                         allData = await res.json();
                         renderTablets();
+
+                        // Update last updated timestamp
+                        const now = new Date();
+                        const timeStr = now.toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                        });
+                        document.getElementById("last-updated").textContent =
+                            timeStr;
 
                         // Check URL hash for tablet filter
                         const hash = window.location.hash.slice(1);
@@ -499,10 +624,29 @@
                             ).value = hash;
                             applyGlobalFilter(hash);
                         }
+                    } else {
+                        showError(
+                            "Failed to load data: Server returned error " +
+                                res.status,
+                        );
                     }
                 } catch (e) {
                     console.error("Failed to load data:", e);
+                    showError("Failed to load data: " + e.message);
+                } finally {
+                    loadingOverlay.classList.remove("visible");
                 }
+            }
+
+            function showError(message) {
+                const grid = document.getElementById("tablet-grid");
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">⚠️</div>
+                        <div>${message}</div>
+                        <button onclick="location.reload()" style="margin-top: 16px; padding: 8px 16px; background: #1a1a1a; border: 1px solid #a08050; color: #c8a96e; border-radius: 4px; cursor: pointer;">Retry</button>
+                    </div>
+                `;
             }
 
             // Update URL hash when global filter changes
@@ -592,7 +736,7 @@
                                     <div class="mod-item" data-mod-name="${m.name}" data-mod-desc="${m.description}" data-tablet="${tabletType}" data-group="${group}">
                                         <strong class="copy-text" title="Click to copy">${renderTextWithHighlight(m.name)}</strong>
                                         <span class="mod-description"> - ${renderTextWithHighlight(m.description)}</span>
-                                        <span class="fav-star ${favorited}" title="Toggle favorite" onclick="toggleFavoriteFromEvent(event, '${tabletType}', '${group}', '${m.name}')">★</span>
+                                        <span class="fav-star ${favorited}" data-tooltip="Click to favorite" onclick="toggleFavoriteFromEvent(event, '${tabletType}', '${group}', '${m.name}')">★</span>
                                     </div>
                                 `;
                                         })
@@ -630,6 +774,7 @@
                                     ${tablet.tablet_type}
                                 </a>
                                 <span class="count-badge">${prefixCount} prefixes, ${suffixCount} suffixes</span>
+                                <button class="tooltip" data-tooltip="Copy all modifiers for ${tablet.tablet_type}" onclick="copyAllModifiersForTablet('${tablet.tablet_type}')" style="background: #2a2a2a; border: 1px solid #3a3a3a; color: #888; padding: 2px 6px; border-radius: 3px; cursor: pointer; font-size: 11px; margin-left: 8px;">Copy All</button>
                             </h3>
                             <div class="mod-list">
                                 <div class="mod-section">
@@ -667,10 +812,13 @@
                 const filterInput = document.getElementById("filter-input");
                 filterInput.addEventListener("input", (e) => {
                     const query = e.target.value.toLowerCase();
+                    let hasAnyVisible = false;
+
                     grid.querySelectorAll(".mod-item").forEach((item) => {
                         const visible = item.textContent
                             .toLowerCase()
                             .includes(query);
+                        if (visible) hasAnyVisible = true;
                         item.style.display = visible ? "block" : "none";
                     });
                     // Hide mod-groups that have no visible items
@@ -681,7 +829,34 @@
                         );
                         group.style.display = hasVisible ? "block" : "none";
                     });
+
+                    // Show empty state if no results
+                    updateEmptyState();
                 });
+
+                function updateEmptyState() {
+                    const allItems = grid.querySelectorAll(".mod-item");
+                    const hasVisible = Array.from(allItems).some(
+                        (item) => item.style.display !== "none",
+                    );
+
+                    const emptyState = document.getElementById("empty-state");
+                    if (!hasVisible) {
+                        if (!emptyState) {
+                            const emptyHtml = document.createElement("div");
+                            emptyHtml.id = "empty-state";
+                            emptyHtml.className = "empty-state";
+                            emptyHtml.innerHTML = `
+                                <div class="empty-state-icon">🔍</div>
+                                <div>No modifiers match your filter</div>
+                                <div style="margin-top: 8px; font-size: 11px; color: #555;">Try a different search term or clear your filters</div>
+                            `;
+                            grid.appendChild(emptyHtml);
+                        }
+                    } else {
+                        if (emptyState) emptyState.remove();
+                    }
+                }
 
                 // Add expand-all/collapse-all functionality
                 document
@@ -734,6 +909,7 @@
 
                 globalSearchTimeout = setTimeout(() => {
                     let matchCount = 0;
+                    let anyVisibleTablet = false;
                     grid.querySelectorAll(".tablet-card").forEach((card) => {
                         const h3 = card.querySelector("h3");
                         const tabletType = h3.textContent.toLowerCase();
@@ -750,6 +926,7 @@
                                 }
                             });
                             card.style.display = hasMatch ? "block" : "none";
+                            if (hasMatch) anyVisibleTablet = true;
                         }
                     });
 
@@ -758,7 +935,31 @@
                     } else {
                         globalFilterResults.textContent = "No matches found";
                     }
+
+                    // Show empty state if no tablets match
+                    updateGlobalEmptyState(anyVisibleTablet, query);
                 }, 300);
+
+                function updateGlobalEmptyState(hasVisible, query) {
+                    const globalEmptyState =
+                        document.getElementById("global-empty-state");
+                    if (!hasVisible && query.length >= 2) {
+                        if (!globalEmptyState) {
+                            const emptyHtml = document.createElement("div");
+                            emptyHtml.id = "global-empty-state";
+                            emptyHtml.className = "empty-state";
+                            emptyHtml.style.gridColumn = "1 / -1";
+                            emptyHtml.innerHTML = `
+                                <div class="empty-state-icon">🔍</div>
+                                <div>No modifiers match "${query}"</div>
+                                <div style="margin-top: 8px; font-size: 11px; color: #555;">Try a different search term</div>
+                            `;
+                            grid.prepend(emptyHtml);
+                        }
+                    } else {
+                        if (globalEmptyState) globalEmptyState.remove();
+                    }
+                }
             });
 
             // Populate category filter
@@ -827,7 +1028,7 @@
             });
 
             // Copy to clipboard functionality
-            function showCopiedNotification() {
+            function showCopiedNotification(message = "Copied to clipboard!") {
                 let notification = document.getElementById(
                     "copied-notification",
                 );
@@ -835,9 +1036,16 @@
                     notification = document.createElement("div");
                     notification.id = "copied-notification";
                     notification.className = "copied-notification";
-                    notification.textContent = "Copied to clipboard!";
+                    notification.textContent = message;
                     document.body.appendChild(notification);
                     setTimeout(() => notification.remove(), 2000);
+                } else {
+                    notification.textContent = message;
+                    clearTimeout(notification._timer);
+                    notification._timer = setTimeout(
+                        () => notification.remove(),
+                        2000,
+                    );
                 }
             }
 
@@ -867,6 +1075,50 @@
                 // Update star icon state
                 const star = event.target;
                 star.classList.toggle("favorited");
+            }
+
+            // Copy all modifiers for a tablet type
+            function copyAllModifiersForTablet(tabletType) {
+                const tablet = allData.find(
+                    (t) => t.tablet_type === tabletType,
+                );
+                if (!tablet) return;
+
+                let text = `=== ${tabletType.toUpperCase()} TABLET MODIFIERS ===\n\n`;
+
+                // Add prefixes
+                if (tablet.prefixes) {
+                    text += "PREFIXES:\n";
+                    for (const [group, groupData] of Object.entries(
+                        tablet.prefixes,
+                    )) {
+                        text += `  ${group}:\n`;
+                        const mods = groupData.mods || groupData;
+                        mods.forEach((m) => {
+                            text += `    - ${m.name}: ${m.description}\n`;
+                        });
+                        text += "\n";
+                    }
+                }
+
+                // Add suffixes
+                if (tablet.suffixes) {
+                    text += "SUFFIXES:\n";
+                    for (const [group, groupData] of Object.entries(
+                        tablet.suffixes,
+                    )) {
+                        text += `  ${group}:\n`;
+                        const mods = groupData.mods || groupData;
+                        mods.forEach((m) => {
+                            text += `    - ${m.name}: ${m.description}\n`;
+                        });
+                        text += "\n";
+                    }
+                }
+
+                navigator.clipboard.writeText(text).then(() => {
+                    showCopiedNotification("All modifiers copied!");
+                });
             }
 
             // Favorites functions - define them directly on window

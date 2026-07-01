@@ -50,6 +50,81 @@
                 color: #c8a96e;
                 background: #2a2a2a;
             }
+            .loading-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.8);
+                display: none;
+                align-items: center;
+                justify-content: center;
+                z-index: 10000;
+            }
+            .loading-overlay.visible {
+                display: flex;
+            }
+            .spinner {
+                border: 3px solid #333;
+                border-top: 3px solid #a08050;
+                border-radius: 50%;
+                width: 40px;
+                height: 40px;
+                animation: spin 1s linear infinite;
+                margin-right: 16px;
+            }
+            @keyframes spin {
+                0% {
+                    transform: rotate(0deg);
+                }
+                100% {
+                    transform: rotate(360deg);
+                }
+            }
+            .loading-text {
+                font-size: 14px;
+                color: #c8a96e;
+            }
+            .empty-state {
+                text-align: center;
+                padding: 40px 20px;
+                color: #666;
+                font-size: 12px;
+            }
+            .empty-state-icon {
+                font-size: 48px;
+                margin-bottom: 12px;
+                opacity: 0.5;
+            }
+            .tooltip {
+                position: relative;
+            }
+            .tooltip::after {
+                content: attr(data-tooltip);
+                position: absolute;
+                bottom: 100%;
+                left: 50%;
+                transform: translateX(-50%);
+                padding: 6px 12px;
+                background: #2a2a2a;
+                border: 1px solid #3a3a3a;
+                border-radius: 4px;
+                font-size: 11px;
+                color: #c9b99a;
+                white-space: nowrap;
+                opacity: 0;
+                visibility: hidden;
+                transition:
+                    opacity 0.2s,
+                    visibility 0.2s;
+                z-index: 1000;
+                margin-bottom: 8px;
+            }
+            .tooltip:hover::after {
+                opacity: 1;
+                visibility: visible;
+            }
             .container {
                 max-width: 1400px;
                 margin: 0 auto;
@@ -189,34 +264,116 @@
                 margin-right: 4px;
                 display: inline-block;
             }
-            .category-General { color: #888; background: rgba(136, 136, 136, 0.15); }
-            .category-Abyss { color: #9966cc; background: rgba(153, 102, 204, 0.15); }
-            .category-Breach { color: #cc6666; background: rgba(204, 102, 102, 0.15); }
-            .category-Delirium { color: #cc6699; background: rgba(204, 102, 153, 0.15); }
-            .category-Expedition { color: #999966; background: rgba(153, 153, 102, 0.15); }
-            .category-Ritual { color: #6699cc; background: rgba(102, 153, 204, 0.15); }
-            .category-Temple { color: #996633; background: rgba(153, 102, 51, 0.15); }
-            .category-Boss { color: #cc9966; background: rgba(204, 153, 102, 0.15); }
-            .category-Monsters { color: #cc6633; background: rgba(204, 102, 51, 0.15); }
-            .category-Items { color: #66cc99; background: rgba(102, 204, 153, 0.15); }
-            .category-Containers { color: #999966; background: rgba(153, 153, 102, 0.15); }
-            .category-Shrines { color: #66cccc; background: rgba(102, 204, 204, 0.15); }
-            .category-Spirit { color: #9966cc; background: rgba(153, 102, 204, 0.15); }
-            .category-Essence { color: #cc99cc; background: rgba(204, 153, 204, 0.15); }
-            .category-Maps { color: #669966; background: rgba(102, 153, 102, 0.15); }
-            .category-Currency { color: #cccc66; background: rgba(204, 204, 102, 0.15); }
-            .category-Progression { color: #66cc66; background: rgba(102, 204, 102, 0.15); }
+            .category-General {
+                color: #888;
+                background: rgba(136, 136, 136, 0.15);
+            }
+            .category-Abyss {
+                color: #9966cc;
+                background: rgba(153, 102, 204, 0.15);
+            }
+            .category-Breach {
+                color: #cc6666;
+                background: rgba(204, 102, 102, 0.15);
+            }
+            .category-Delirium {
+                color: #cc6699;
+                background: rgba(204, 102, 153, 0.15);
+            }
+            .category-Expedition {
+                color: #999966;
+                background: rgba(153, 153, 102, 0.15);
+            }
+            .category-Ritual {
+                color: #6699cc;
+                background: rgba(102, 153, 204, 0.15);
+            }
+            .category-Temple {
+                color: #996633;
+                background: rgba(153, 102, 51, 0.15);
+            }
+            .category-Boss {
+                color: #cc9966;
+                background: rgba(204, 153, 102, 0.15);
+            }
+            .category-Monsters {
+                color: #cc6633;
+                background: rgba(204, 102, 51, 0.15);
+            }
+            .category-Items {
+                color: #66cc99;
+                background: rgba(102, 204, 153, 0.15);
+            }
+            .category-Containers {
+                color: #999966;
+                background: rgba(153, 153, 102, 0.15);
+            }
+            .category-Shrines {
+                color: #66cccc;
+                background: rgba(102, 204, 204, 0.15);
+            }
+            .category-Spirit {
+                color: #9966cc;
+                background: rgba(153, 102, 204, 0.15);
+            }
+            .category-Essence {
+                color: #cc99cc;
+                background: rgba(204, 153, 204, 0.15);
+            }
+            .category-Maps {
+                color: #669966;
+                background: rgba(102, 153, 102, 0.15);
+            }
+            .category-Currency {
+                color: #cccc66;
+                background: rgba(204, 204, 102, 0.15);
+            }
+            .category-Progression {
+                color: #66cc66;
+                background: rgba(102, 204, 102, 0.15);
+            }
             @media (max-width: 768px) {
-                .comparison-container { grid-template-columns: 1fr; }
-                .stats-grid { grid-template-columns: repeat(2, 1fr); }
+                .comparison-container {
+                    grid-template-columns: 1fr;
+                }
+                .stats-grid {
+                    grid-template-columns: repeat(2, 1fr);
+                }
             }
         </style>
     </head>
     <body>
         <div id="refresh-bar"></div>
+        <div class="loading-overlay" id="loading-overlay">
+            <div>
+                <div class="spinner"></div>
+                <div class="loading-text">Loading comparison...</div>
+            </div>
+        </div>
         <header>
             <h1>⬡ Tablet Comparison</h1>
-            <span id="status">Static Data</span>
+            <div style="display: flex; align-items: center; gap: 14px">
+                <span id="status">Static Data</span>
+                <button
+                    class="tooltip"
+                    data-tooltip="Refresh data"
+                    onclick="loadData()"
+                    style="
+                        padding: 4px 8px;
+                        background: #2a2a2a;
+                        border: 1px solid #3a3a3a;
+                        color: #c8a96e;
+                        border-radius: 4px;
+                        cursor: pointer;
+                        font-size: 12px;
+                    "
+                >
+                    🔄
+                </button>
+                <span id="last-updated" style="font-size: 11px; color: #666"
+                    >Just now</span
+                >
+            </div>
         </header>
 
         <div class="top-nav">
@@ -229,7 +386,16 @@
         </div>
 
         <div class="container">
-            <h2 style="margin-bottom: 16px; color: #a08050; text-transform: uppercase; font-size: 12px;">Compare Tablet Types Side-by-Side</h2>
+            <h2
+                style="
+                    margin-bottom: 16px;
+                    color: #a08050;
+                    text-transform: uppercase;
+                    font-size: 12px;
+                "
+            >
+                Compare Tablet Types Side-by-Side
+            </h2>
 
             <div class="controls">
                 <div class="select-container">
@@ -253,8 +419,9 @@
             </div>
 
             <div class="comparison-container" id="comparison-container">
-                <p style="color: #666; text-align: center; padding: 40px;">
-                    Select tablets from the dropdowns above to compare their modifiers.
+                <p style="color: #666; text-align: center; padding: 40px">
+                    Select tablets from the dropdowns above to compare their
+                    modifiers.
                 </p>
             </div>
         </div>
@@ -265,67 +432,108 @@
 
             // Populate tablet dropdowns
             async function loadData() {
+                const loadingOverlay =
+                    document.getElementById("loading-overlay");
+                loadingOverlay.classList.add("visible");
+
                 try {
-                    const res = await fetch(`${API}/api/reports/mod-reference-separated`);
+                    const res = await fetch(
+                        `${API}/api/reports/mod-reference-separated`,
+                    );
                     if (res.ok) {
                         allData = await res.json();
                         populateDropdowns();
+                        // Update timestamp
+                        const now = new Date();
+                        const timeStr = now.toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                        });
+                        document.getElementById("last-updated").textContent =
+                            timeStr;
+                        document.getElementById("status").textContent =
+                            "Loaded";
+                    } else {
+                        showError(
+                            "Failed to load data: Server returned error " +
+                                res.status,
+                        );
                     }
                 } catch (e) {
                     console.error("Failed to load data:", e);
+                    showError("Failed to load data: " + e.message);
+                } finally {
+                    loadingOverlay.classList.remove("visible");
                 }
             }
 
-            function populateDropdowns() {
-                const tabletTypes = allData.map(t => t.tablet_type);
-                const options = tabletTypes.map(t =>
-                    `<option value="${t}">${t.charAt(0).toUpperCase() + t.slice(1)}</option>`
-                ).join('');
+            function showError(message) {
+                // Could add error display here
+                console.error(message);
+            }
 
-                document.getElementById('tablet-select-1').innerHTML = '<option value="">Select a tablet...</option>' + options;
-                document.getElementById('tablet-select-2').innerHTML = '<option value="">Select a tablet...</option>' + options;
-                document.getElementById('tablet-select-3').innerHTML = '<option value="">Select a tablet...</option>' + options;
+            function populateDropdowns() {
+                const tabletTypes = allData.map((t) => t.tablet_type);
+                const options = tabletTypes
+                    .map(
+                        (t) =>
+                            `<option value="${t}">${t.charAt(0).toUpperCase() + t.slice(1)}</option>`,
+                    )
+                    .join("");
+
+                document.getElementById("tablet-select-1").innerHTML =
+                    '<option value="">Select a tablet...</option>' + options;
+                document.getElementById("tablet-select-2").innerHTML =
+                    '<option value="">Select a tablet...</option>' + options;
+                document.getElementById("tablet-select-3").innerHTML =
+                    '<option value="">Select a tablet...</option>' + options;
 
                 // Add event listeners
-                [1, 2, 3].forEach(num => {
-                    document.getElementById(`tablet-select-${num}`).addEventListener('change', renderComparison);
+                [1, 2, 3].forEach((num) => {
+                    document
+                        .getElementById(`tablet-select-${num}`)
+                        .addEventListener("change", renderComparison);
                 });
             }
 
             function getTabletData(tabletType) {
-                return allData.find(t => t.tablet_type === tabletType);
+                return allData.find((t) => t.tablet_type === tabletType);
             }
 
             function renderComparison() {
-                const container = document.getElementById('comparison-container');
+                const container = document.getElementById(
+                    "comparison-container",
+                );
                 const selections = [
-                    document.getElementById('tablet-select-1').value,
-                    document.getElementById('tablet-select-2').value,
-                    document.getElementById('tablet-select-3').value
-                ].filter(t => t);
+                    document.getElementById("tablet-select-1").value,
+                    document.getElementById("tablet-select-2").value,
+                    document.getElementById("tablet-select-3").value,
+                ].filter((t) => t);
 
                 if (selections.length === 0) {
-                    container.innerHTML = '<p style="color: #666; text-align: center; padding: 40px;">Select tablets from the dropdowns above to compare their modifiers.</p>';
+                    container.innerHTML =
+                        '<p style="color: #666; text-align: center; padding: 40px;">Select tablets from the dropdowns above to compare their modifiers.</p>';
                     return;
                 }
 
-                container.innerHTML = selections.map((type, idx) => {
-                    const tablet = getTabletData(type);
-                    if (!tablet) return '';
+                container.innerHTML = selections
+                    .map((type, idx) => {
+                        const tablet = getTabletData(type);
+                        if (!tablet) return "";
 
-                    const prefixes = tablet.prefixes || {};
-                    const suffixes = tablet.suffixes || {};
+                        const prefixes = tablet.prefixes || {};
+                        const suffixes = tablet.suffixes || {};
 
-                    const allModGroups = {
-                        ...prefixes,
-                        ...suffixes
-                    };
+                        const allModGroups = {
+                            ...prefixes,
+                            ...suffixes,
+                        };
 
-                    const prefixCount = tablet.prefix_count || 0;
-                    const suffixCount = tablet.suffix_count || 0;
-                    const totalMods = tablet.mod_count || 0;
+                        const prefixCount = tablet.prefix_count || 0;
+                        const suffixCount = tablet.suffix_count || 0;
+                        const totalMods = tablet.mod_count || 0;
 
-                    return `
+                        return `
                         <div class="tablet-comparison">
                             <div class="tablet-header">
                                 <h2>${type.charAt(0).toUpperCase() + type.slice(1)}</h2>
@@ -345,39 +553,59 @@
                             <div class="modifiers-section">
                                 <div class="section-title">All Modifier Groups (${Object.keys(allModGroups).length})</div>
                                 <div class="mod-list">
-                                    ${Object.entries(allModGroups).map(([group, groupData]) => {
-                                        const mods = groupData.mods || groupData;
-                                        const category = groupData.category || 'General';
-                                        const isPrefix = Object.keys(prefixes).includes(group);
-                                        const typeLabel = isPrefix ? 'P' : 'S';
-                                        return mods.map(m =>
-                                            `<span class="mod-tag" title="${typeLabel}: ${m.description}">` +
-                                            `<span class="category-badge category-${category}">${category}</span>` +
-                                            `${m.name}</span>`
-                                        ).join('');
-                                    }).join('')}
+                                    ${Object.entries(allModGroups)
+                                        .map(([group, groupData]) => {
+                                            const mods =
+                                                groupData.mods || groupData;
+                                            const category =
+                                                groupData.category || "General";
+                                            const isPrefix =
+                                                Object.keys(prefixes).includes(
+                                                    group,
+                                                );
+                                            const typeLabel = isPrefix
+                                                ? "P"
+                                                : "S";
+                                            return mods
+                                                .map(
+                                                    (m) =>
+                                                        `<span class="mod-tag" title="${typeLabel}: ${m.description}">` +
+                                                        `<span class="category-badge category-${category}">${category}</span>` +
+                                                        `${m.name}</span>`,
+                                                )
+                                                .join("");
+                                        })
+                                        .join("")}
                                 </div>
                             </div>
                             <div class="modifiers-section">
                                 <div class="section-title">Unique Suffixes</div>
                                 <div class="mod-list">
-                                    ${Object.entries(suffixes).map(([group, groupData]) => {
-                                        const mods = groupData.mods || groupData;
-                                        const category = groupData.category || 'General';
-                                        return mods.map(m =>
-                                            `<span class="mod-tag"><span class="category-badge category-${category}">${category}</span>${m.name}</span>`
-                                        ).join('');
-                                    }).join('')}
+                                    ${Object.entries(suffixes)
+                                        .map(([group, groupData]) => {
+                                            const mods =
+                                                groupData.mods || groupData;
+                                            const category =
+                                                groupData.category || "General";
+                                            return mods
+                                                .map(
+                                                    (m) =>
+                                                        `<span class="mod-tag"><span class="category-badge category-${category}">${category}</span>${m.name}</span>`,
+                                                )
+                                                .join("");
+                                        })
+                                        .join("")}
                                 </div>
                             </div>
                         </div>
                     `;
-                }).join('');
+                    })
+                    .join("");
             }
 
             function removeTablet(index) {
                 const selectId = `tablet-select-${index + 1}`;
-                document.getElementById(selectId).value = '';
+                document.getElementById(selectId).value = "";
                 renderComparison();
             }
 
