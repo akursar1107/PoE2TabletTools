@@ -108,17 +108,6 @@ const ThemeManager = {
   },
 };
 
-// Initialize theme manager when DOM is ready
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", () => {
-    ThemeManager.init();
-    initTableSorting();
-  });
-} else {
-  ThemeManager.init();
-  initTableSorting();
-}
-
 /**
  * Table Sorting Functionality
  * Makes table headers clickable to sort columns
@@ -415,4 +404,125 @@ async function copyToClipboard(text, successMessage = "Copied to clipboard!") {
     showCopiedNotification("Failed to copy: " + e.message);
     return false;
   }
+}
+
+/**
+ * Export table data to CSV
+ * @param {HTMLElement} table - The table element to export
+ * @param {string} filename - The filename for the CSV
+ */
+function exportTableToCSV(table, filename = "table-data.csv") {
+  const headers = Array.from(table.querySelectorAll("thead th")).map((th) =>
+    th.textContent.trim(),
+  );
+  const rows = Array.from(table.querySelectorAll("tbody tr"));
+
+  const csvContent = [
+    headers.join(","),
+    ...rows.map((row) =>
+      Array.from(row.cells)
+        .map((cell) => {
+          const text = cell.textContent.trim();
+          // Escape quotes and wrap in quotes if contains comma
+          return text.includes(",") || text.includes('"') || text.includes("\n")
+            ? `"${text.replace(/"/g, '""')}"`
+            : text;
+        })
+        .join(","),
+    ),
+  ].join("\n");
+
+  downloadFile(csvContent, filename, "text/csv");
+}
+
+/**
+ * Export table data to JSON
+ * @param {HTMLElement} table - The table element to export
+ * @param {string} filename - The filename for the JSON
+ */
+function exportTableToJSON(table, filename = "table-data.json") {
+  const headers = Array.from(table.querySelectorAll("thead th")).map((th) =>
+    th.textContent.trim(),
+  );
+  const rows = Array.from(table.querySelectorAll("tbody tr"));
+
+  const data = rows.map((row) => {
+    const obj = {};
+    Array.from(row.cells).forEach((cell, i) => {
+      obj[headers[i]] = cell.textContent.trim();
+    });
+    return obj;
+  });
+
+  downloadFile(JSON.stringify(data, null, 2), filename, "application/json");
+}
+
+/**
+ * Download a file
+ * @param {string} content - The file content
+ * @param {string} filename - The filename
+ * @param {string} mimeType - The MIME type
+ */
+function downloadFile(content, filename, mimeType) {
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+/**
+ * Add export buttons to all sortable tables
+ */
+function addExportButtons() {
+  document.querySelectorAll("table.sortable").forEach((table) => {
+    // Check if export buttons already exist
+    const existingButtons = table.querySelector(".export-buttons");
+    if (existingButtons) return;
+
+    const container = document.createElement("div");
+    container.className = "export-buttons";
+    container.style.cssText = "display: flex; gap: 8px; margin-top: 8px;";
+
+    const csvButton = document.createElement("button");
+    csvButton.innerHTML = "📥 CSV";
+    csvButton.title = "Export to CSV";
+    csvButton.style.cssText = "padding: 4px 8px; font-size: 11px;";
+    csvButton.onclick = () => {
+      const tableName = table.id || "table";
+      exportTableToCSV(table, `${tableName}.csv`);
+    };
+
+    const jsonButton = document.createElement("button");
+    jsonButton.innerHTML = "📥 JSON";
+    jsonButton.title = "Export to JSON";
+    jsonButton.style.cssText = "padding: 4px 8px; font-size: 11px;";
+    jsonButton.onclick = () => {
+      const tableName = table.id || "table";
+      exportTableToJSON(table, `${tableName}.json`);
+    };
+
+    container.appendChild(csvButton);
+    container.appendChild(jsonButton);
+
+    // Insert after the table
+    table.parentNode.insertBefore(container, table.nextSibling);
+  });
+}
+
+// Add export buttons when DOM is ready
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", () => {
+    ThemeManager.init();
+    initTableSorting();
+    addExportButtons();
+  });
+} else {
+  ThemeManager.init();
+  initTableSorting();
+  addExportButtons();
 }
