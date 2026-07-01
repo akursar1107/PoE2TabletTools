@@ -174,6 +174,81 @@
             .mod-item:hover .mod-description {
                 color: #999;
             }
+            .category-badge {
+                font-size: 10px;
+                padding: 1px 4px;
+                border-radius: 2px;
+                margin-right: 4px;
+                display: inline-block;
+            }
+            .category-General {
+                color: #888;
+                background: rgba(136, 136, 136, 0.15);
+            }
+            .category-Abyss {
+                color: #9966cc;
+                background: rgba(153, 102, 204, 0.15);
+            }
+            .category-Breach {
+                color: #cc6666;
+                background: rgba(204, 102, 102, 0.15);
+            }
+            .category-Delirium {
+                color: #cc6699;
+                background: rgba(204, 102, 153, 0.15);
+            }
+            .category-Expedition {
+                color: #999966;
+                background: rgba(153, 153, 102, 0.15);
+            }
+            .category-Ritual {
+                color: #6699cc;
+                background: rgba(102, 153, 204, 0.15);
+            }
+            .category-Temple {
+                color: #996633;
+                background: rgba(153, 102, 51, 0.15);
+            }
+            .category-Boss {
+                color: #cc9966;
+                background: rgba(204, 153, 102, 0.15);
+            }
+            .category-Monsters {
+                color: #cc6633;
+                background: rgba(204, 102, 51, 0.15);
+            }
+            .category-Items {
+                color: #66cc99;
+                background: rgba(102, 204, 153, 0.15);
+            }
+            .category-Containers {
+                color: #999966;
+                background: rgba(153, 153, 102, 0.15);
+            }
+            .category-Shrines {
+                color: #66cccc;
+                background: rgba(102, 204, 204, 0.15);
+            }
+            .category-Spirit {
+                color: #9966cc;
+                background: rgba(153, 102, 204, 0.15);
+            }
+            .category-Essence {
+                color: #cc99cc;
+                background: rgba(204, 153, 204, 0.15);
+            }
+            .category-Maps {
+                color: #669966;
+                background: rgba(102, 153, 102, 0.15);
+            }
+            .category-Currency {
+                color: #cccc66;
+                background: rgba(204, 204, 102, 0.15);
+            }
+            .category-Progression {
+                color: #66cc66;
+                background: rgba(102, 204, 102, 0.15);
+            }
             .empty-message {
                 color: #555 !important;
                 font-style: italic;
@@ -277,6 +352,24 @@
                 style="color: #666; font-size: 12px; margin-left: 12px"
             ></span>
         </div>
+        <div class="filter-bar" style="border-top: none; padding-top: 0">
+            <span style="color: #888; font-size: 12px; margin-right: 12px"
+                >Filter by category:</span
+            >
+            <select
+                id="category-filter"
+                style="
+                    background: #2a2a2a;
+                    border: 1px solid #3a3a3a;
+                    color: #c9b99a;
+                    padding: 6px 10px;
+                    border-radius: 4px;
+                    font-size: 12px;
+                "
+            >
+                <option value="">All Categories</option>
+            </select>
+        </div>
 
         <div class="info-text">
             Data source:
@@ -328,15 +421,19 @@
                         const prefixes = tablet.prefixes || {};
                         const suffixes = tablet.suffixes || {};
 
-                        const renderModGroup = (group, mods, type) => {
+                        const renderModGroup = (group, groupData, type) => {
+                            const mods = groupData.mods || groupData;
+                            const category = groupData.category || "General";
                             const badge =
                                 type === "prefix"
                                     ? '<span class="mod-type-badge prefix-badge">Prefix</span>'
                                     : '<span class="mod-type-badge suffix-badge">Suffix</span>';
+                            const catBadge = `<span class="category-badge category-${category}">${category}</span>`;
                             return `
                                 <div class="mod-group">
                                     <div class="mod-group-title">
                                         ${badge}
+                                        ${catBadge}
                                         ${group}
                                     </div>
                                     ${mods
@@ -354,14 +451,14 @@
                         };
 
                         const htmlPrefixes = Object.entries(prefixes)
-                            .map(([group, mods]) =>
-                                renderModGroup(group, mods, "prefix"),
+                            .map(([group, groupData]) =>
+                                renderModGroup(group, groupData, "prefix"),
                             )
                             .join("");
 
                         const htmlSuffixes = Object.entries(suffixes)
-                            .map(([group, mods]) =>
-                                renderModGroup(group, mods, "suffix"),
+                            .map(([group, groupData]) =>
+                                renderModGroup(group, groupData, "suffix"),
                             )
                             .join("");
 
@@ -503,7 +600,43 @@
                 }, 300);
             });
 
-            loadData();
+            // Populate category filter
+            const categoryFilter = document.getElementById("category-filter");
+            const allCategories = new Set(["All Categories"]);
+
+            function populateCategories() {
+                allData.forEach((tablet) => {
+                    Object.values(tablet.prefixes || {}).forEach((g) => {
+                        if (g.category) allCategories.add(g.category);
+                    });
+                    Object.values(tablet.suffixes || {}).forEach((g) => {
+                        if (g.category) allCategories.add(g.category);
+                    });
+                });
+
+                const sortedCategories = Array.from(allCategories).sort();
+                categoryFilter.innerHTML = sortedCategories
+                    .map((cat) => `<option value="${cat}">${cat}</option>`)
+                    .join("");
+            }
+
+            // Category filter functionality
+            categoryFilter.addEventListener("change", (e) => {
+                const selectedCategory = e.target.value;
+                grid.querySelectorAll(".mod-group").forEach((group) => {
+                    const categoryBadge =
+                        group.querySelector(".category-badge");
+                    if (!categoryBadge) return;
+
+                    const groupCategory = categoryBadge.textContent;
+                    const shouldShow =
+                        selectedCategory === "" ||
+                        selectedCategory === groupCategory;
+                    group.style.display = shouldShow ? "block" : "none";
+                });
+            });
+
+            loadData().then(populateCategories);
         </script>
     </body>
 </html>

@@ -686,6 +686,64 @@ TABLET_SUFFIXES = {
 }
 
 
+# Modifier group categories for better organization
+MOD_CATEGORIES = {
+    # Shared/generic categories
+    "Map": "General",
+    "Additional": "General",
+    # Abyss
+    "Abyss": "Abyss",
+    # Breach
+    "Breach": "Breach",
+    # Delirium
+    "Delirium": "Delirium",
+    # Expedition
+    "Expedition": "Expedition",
+    # Overseer/Map Boss
+    "MapBoss": "Boss",
+    # Ritual
+    "Ritual": "Ritual",
+    # Temple/Incursion
+    "Incursion": "Temple",
+    # Essences
+    "Essence": "Essence",
+    # Spirits
+    "Spirit": "Spirit",
+    "Azmeri": "Spirit",
+    # Strongboxes
+    "Strongbox": "Containers",
+    # Shrines
+    "Shrine": "Shrines",
+    # Chests
+    "Chest": "Containers",
+    # Maps/Waystones
+    "Maps": "Maps",
+    "Waystone": "Maps",
+    # Exiles
+    "Exile": "Monsters",
+    # Monsters
+    "Monster": "Monsters",
+    "Pack": "Monsters",
+    # Items
+    "Item": "Items",
+    "Dropped": "Items",
+    # Experience
+    "Experience": "Progression",
+    "Gain": "Progression",
+    # Gold/Currency
+    "Gold": "Currency",
+    "Currency": "Currency",
+}
+
+
+def get_category_for_group(group_name: str) -> str:
+    """Determine the category for a modifier group based on its name."""
+    for prefix, category in MOD_CATEGORIES.items():
+        if prefix in group_name:
+            return category
+    return "General"
+
+
 def get_all_modifiers():
     """Get all modifiers organized by tablet type with full descriptions."""
     tablets = [
@@ -815,7 +873,8 @@ def get_modifiers_separated():
             if group not in suffixes:
                 suffixes[group] = []
             suffixes[group].extend(
-                {"name": m["name"], "description": m["description"]} for m in suffix_mods
+                {"name": m["name"], "description": m["description"]}
+                for m in suffix_mods
             )
 
         # Add tablet-specific suffixes
@@ -829,9 +888,21 @@ def get_modifiers_separated():
                     for m in entry["mods"]
                 )
 
+        # Add categories to modifier groups
+        for group in prefixes:
+            prefixes[group] = {
+                "mods": prefixes[group],
+                "category": get_category_for_group(group),
+            }
+        for group in suffixes:
+            suffixes[group] = {
+                "mods": suffixes[group],
+                "category": get_category_for_group(group),
+            }
+
         # Count total individual modifiers
-        prefix_count = sum(len(m) for m in prefixes.values())
-        suffix_count = sum(len(m) for m in suffixes.values())
+        prefix_count = sum(len(m["mods"]) for m in prefixes.values())
+        suffix_count = sum(len(m["mods"]) for m in suffixes.values())
         total_mod_count = prefix_count + suffix_count
         result.append(
             {
