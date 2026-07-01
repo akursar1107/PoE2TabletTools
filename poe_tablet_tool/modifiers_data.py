@@ -211,7 +211,7 @@ TABLET_SUFFIXES = {
                 "group": "AbyssMonsterIncrease",
                 "mods": [
                     {
-                        "name": "of the Horde",
+                        "name": "of the Abyssal Horde",
                         "description": "Abysses in Map spawn (20-30)% increased Monsters",
                     }
                 ],
@@ -622,7 +622,7 @@ TABLET_SUFFIXES = {
                 "group": "IncursionSecondaryEncounters",
                 "mods": [
                     {
-                        "name": "IncursionSecondaryEncounters",
+                        "name": "of Encounters",
                         "description": "(25-50)% increased chance Vaal Beacons summon additional Monsters in Map",
                     }
                 ],
@@ -631,7 +631,7 @@ TABLET_SUFFIXES = {
                 "group": "IncursionPackSize",
                 "mods": [
                     {
-                        "name": "IncursionPackSize",
+                        "name": "of Packs",
                         "description": "(10-30)% increased Pack Size for Monsters around Vaal Beacons in Map",
                     }
                 ],
@@ -640,7 +640,7 @@ TABLET_SUFFIXES = {
                 "group": "IncursionRareChestChance",
                 "mods": [
                     {
-                        "name": "IncursionRareChestChance",
+                        "name": "of Riches",
                         "description": "(30-60)% increased chance Vaal Beacon Chests are Rare in Map",
                     }
                 ],
@@ -649,7 +649,7 @@ TABLET_SUFFIXES = {
                 "group": "IncursionExtraPacks",
                 "mods": [
                     {
-                        "name": "IncursionExtraPacks",
+                        "name": "of Multitude",
                         "description": "1 extra pack of Monsters around Vaal Beacons in Map",
                     }
                 ],
@@ -658,7 +658,7 @@ TABLET_SUFFIXES = {
                 "group": "IncursionExtraPacksChance",
                 "mods": [
                     {
-                        "name": "IncursionExtraPacksChance",
+                        "name": "of Additional Packs",
                         "description": "(30-60)% chance for an extra packs of Monsters around Vaal Beacons in Map",
                     }
                 ],
@@ -667,7 +667,7 @@ TABLET_SUFFIXES = {
                 "group": "IncursionTokenChance",
                 "mods": [
                     {
-                        "name": "IncursionTokenChance",
+                        "name": "of Vaal Crystals",
                         "description": "(5-10)% chance to gain an additional Crystal from Vaal Beacons in Map",
                     }
                 ],
@@ -676,7 +676,7 @@ TABLET_SUFFIXES = {
                 "group": "IncursionBossChance",
                 "mods": [
                     {
-                        "name": "IncursionBossChance",
+                        "name": "of the Vaal",
                         "description": "(10-25)% chance to add a Vaal Beacon Unique Monster to the Map",
                     }
                 ],
