@@ -195,6 +195,7 @@
             <a href="/dashboard">Main Dashboard</a>
             <a href="/normal-prices">Normal Prices</a>
             <a href="/modifiers">Modifiers</a>
+            <a href="/compare-tablets">Compare</a>
         </div>
 
         <div class="container">
@@ -248,31 +249,34 @@
             let currentTablet = null;
 
             // Get tablet type from URL path (e.g., /tablet/breach)
-            const pathParts = window.location.pathname.split('/');
+            const pathParts = window.location.pathname.split("/");
             const tabletType = pathParts[pathParts.length - 1];
 
             // Icon mapping for each tablet type
             const tabletIcons = {
-                irradiated: '☢️',
-                abyss: '🕳️',
-                breach: '💥',
-                delirium: '👁️',
-                expedition: '🗺️',
-                overseer: '👁️',
-                ritual: '⚰️',
-                temple: '🏛️'
+                irradiated: "☢️",
+                abyss: "🕳️",
+                breach: "💥",
+                delirium: "👁️",
+                expedition: "🗺️",
+                overseer: "👁️",
+                ritual: "⚰️",
+                temple: "🏛️",
             };
 
             // Descriptions for each tablet type
             const tabletDescriptions = {
-                irradiated: 'Irradiated Tablet - Generic tablet type with no specific mechanics',
-                abyss: 'Abyss Tablet - Spawns abysses in maps',
-                breach: 'Breach Tablet - Spawns unstable breaches in maps',
-                delirium: 'Delirium Tablet - Creates delirium fog in maps',
-                expedition: 'Expedition Tablet - Adds expedition encounters to maps',
-                overseer: 'Overseer Tablet - Affects map bosses and their rewards',
-                ritual: 'Ritual Tablet - Adds ritual altars to maps',
-                temple: 'Temple Tablet - Adds Vaal incursion architecture to maps'
+                irradiated:
+                    "Irradiated Tablet - Generic tablet type with no specific mechanics",
+                abyss: "Abyss Tablet - Spawns abysses in maps",
+                breach: "Breach Tablet - Spawns unstable breaches in maps",
+                delirium: "Delirium Tablet - Creates delirium fog in maps",
+                expedition:
+                    "Expedition Tablet - Adds expedition encounters to maps",
+                overseer:
+                    "Overseer Tablet - Affects map bosses and their rewards",
+                ritual: "Ritual Tablet - Adds ritual altars to maps",
+                temple: "Temple Tablet - Adds Vaal incursion architecture to maps",
             };
 
             async function loadData() {
@@ -280,11 +284,14 @@
                     const res = await fetch(`${API}/api/reports/mod-reference`);
                     if (res.ok) {
                         allData = await res.json();
-                        currentTablet = allData.find(t => t.tablet_type === tabletType);
+                        currentTablet = allData.find(
+                            (t) => t.tablet_type === tabletType,
+                        );
                         if (currentTablet) {
                             renderPage();
                         } else {
-                            document.getElementById('tablet-name').textContent = 'Tablet not found';
+                            document.getElementById("tablet-name").textContent =
+                                "Tablet not found";
                         }
                     }
                 } catch (e) {
@@ -294,53 +301,77 @@
 
             function renderPage() {
                 // Set header info
-                const icon = tabletIcons[tabletType] || '📜';
-                const desc = tabletDescriptions[tabletType] || 'Tablet modifier reference';
-                document.getElementById('tablet-icon').textContent = icon;
-                document.getElementById('tablet-name').textContent = tabletType.charAt(0).toUpperCase() + tabletType.slice(1);
-                document.getElementById('tablet-desc').textContent = desc;
+                const icon = tabletIcons[tabletType] || "📜";
+                const desc =
+                    tabletDescriptions[tabletType] ||
+                    "Tablet modifier reference";
+                document.getElementById("tablet-icon").textContent = icon;
+                document.getElementById("tablet-name").textContent =
+                    tabletType.charAt(0).toUpperCase() + tabletType.slice(1);
+                document.getElementById("tablet-desc").textContent = desc;
 
                 // Set stats
-                document.getElementById('total-mods').textContent = currentTablet.mod_count || 0;
-                document.getElementById('prefix-count').textContent = currentTablet.prefix_count || 0;
-                document.getElementById('suffix-count').textContent = currentTablet.suffix_count || 0;
-                const totalGroups = (currentTablet.prefixes ? Object.keys(currentTablet.prefixes).length : 0) +
-                                   (currentTablet.suffixes ? Object.keys(currentTablet.suffixes).length : 0);
-                document.getElementById('group-count').textContent = totalGroups;
+                document.getElementById("total-mods").textContent =
+                    currentTablet.mod_count || 0;
+                document.getElementById("prefix-count").textContent =
+                    currentTablet.prefix_count || 0;
+                document.getElementById("suffix-count").textContent =
+                    currentTablet.suffix_count || 0;
+                const totalGroups =
+                    (currentTablet.prefixes
+                        ? Object.keys(currentTablet.prefixes).length
+                        : 0) +
+                    (currentTablet.suffixes
+                        ? Object.keys(currentTablet.suffixes).length
+                        : 0);
+                document.getElementById("group-count").textContent =
+                    totalGroups;
 
                 // Render prefixes
-                const prefixesGrid = document.getElementById('prefixes-grid');
+                const prefixesGrid = document.getElementById("prefixes-grid");
                 const prefixes = currentTablet.prefixes || {};
                 prefixesGrid.innerHTML = Object.entries(prefixes)
-                    .map(([group, mods]) => `
+                    .map(
+                        ([group, mods]) => `
                         <div class="mod-card">
                             <h4><span class="mod-type-badge prefix-badge">Prefix</span>${group}</h4>
-                            ${mods.map(m => `
+                            ${mods
+                                .map(
+                                    (m) => `
                                 <div class="mod-item">
                                     <strong>${m.name}</strong>
                                     <span class="mod-description"> - ${m.description}</span>
                                 </div>
-                            `).join('')}
+                            `,
+                                )
+                                .join("")}
                         </div>
-                    `)
-                    .join('');
+                    `,
+                    )
+                    .join("");
 
                 // Render suffixes
-                const suffixesGrid = document.getElementById('suffixes-grid');
+                const suffixesGrid = document.getElementById("suffixes-grid");
                 const suffixes = currentTablet.suffixes || {};
                 suffixesGrid.innerHTML = Object.entries(suffixes)
-                    .map(([group, mods]) => `
+                    .map(
+                        ([group, mods]) => `
                         <div class="mod-card">
                             <h4><span class="mod-type-badge suffix-badge">Suffix</span>${group}</h4>
-                            ${mods.map(m => `
+                            ${mods
+                                .map(
+                                    (m) => `
                                 <div class="mod-item">
                                     <strong>${m.name}</strong>
                                     <span class="mod-description"> - ${m.description}</span>
                                 </div>
-                            `).join('')}
+                            `,
+                                )
+                                .join("")}
                         </div>
-                    `)
-                    .join('');
+                    `,
+                    )
+                    .join("");
             }
 
             loadData();

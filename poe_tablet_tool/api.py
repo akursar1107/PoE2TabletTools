@@ -342,3 +342,11 @@ def tablet_detail(tablet_type: str) -> FileResponse:
     if not path.is_file():
         raise HTTPException(status_code=404, detail="tablet_detail.html not found")
     return FileResponse(path)
+
+
+@app.get("/compare-tablets")
+def compare_tablets_dashboard() -> FileResponse:
+    path = STATIC_DIR / "compare_tablets.html"
+    if not path.is_file():
+        raise HTTPException(status_code=404, detail="compare_tablets.html not found")
+    return FileResponse(path)
