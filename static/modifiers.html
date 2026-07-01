@@ -258,6 +258,19 @@
                 color: #555 !important;
                 font-style: italic;
             }
+            @media (max-width: 768px) {
+                .tablet-grid {
+                    grid-template-columns: 1fr;
+                }
+                .filter-bar {
+                    flex-wrap: wrap;
+                    gap: 8px;
+                }
+                .filter-bar input,
+                .filter-bar select {
+                    width: 100%;
+                }
+            }
             .filter-bar {
                 padding: 14px 24px;
                 border-bottom: 1px solid #2a2a2a;
@@ -462,10 +475,34 @@
                     if (res.ok) {
                         allData = await res.json();
                         renderTablets();
+
+                        // Check URL hash for tablet filter
+                        const hash = window.location.hash.slice(1);
+                        if (hash) {
+                            document.getElementById(
+                                "global-filter-input",
+                            ).value = hash;
+                            applyGlobalFilter(hash);
+                        }
                     }
                 } catch (e) {
                     console.error("Failed to load data:", e);
                 }
+            }
+
+            // Update URL hash when global filter changes
+            function applyGlobalFilter(query) {
+                const filterInput = document.getElementById(
+                    "global-filter-input",
+                );
+                filterInput.value = query;
+                if (query.length >= 2) {
+                    window.location.hash = query;
+                } else {
+                    window.location.hash = "";
+                }
+                // Trigger the filter
+                filterInput.dispatchEvent(new Event("input"));
             }
 
             function renderTablets() {
