@@ -162,6 +162,31 @@
             .full {
                 grid-column: 1 / -1;
             }
+            .stats-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+                gap: 12px;
+                padding: 12px;
+            }
+            .stat-card {
+                background: #1a1a1a;
+                border: 1px solid #2a2a2a;
+                border-radius: 6px;
+                padding: 12px;
+                text-align: center;
+            }
+            .stat-card h3 {
+                font-size: 11px;
+                color: #888;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                margin-bottom: 8px;
+            }
+            .stat-card .value {
+                font-size: 18px;
+                color: #c8a96e;
+                font-weight: bold;
+            }
             .panel {
                 background: #141414;
                 border: 1px solid #2a2a2a;
@@ -339,13 +364,33 @@
         </div>
 
         <div class="grid">
-            <div class="panel full">
-                <h2>Top Affixes by Frequency</h2>
-                <table id="tbl-freq" class="sortable">
+            <div class="panel">
+                <h2>Top Prefixes by Frequency</h2>
+                <table id="tbl-freq-prefix" class="sortable">
                     <thead>
                         <tr>
                             <th data-sortable>Mod Family</th>
-                            <th data-sortable>Slot</th>
+                            <th data-sortable>Type</th>
+                            <th data-sortable style="text-align: right">
+                                Count
+                            </th>
+                            <th data-sortable style="text-align: right">
+                                Avg div
+                            </th>
+                            <th data-sortable style="text-align: right">
+                                Range
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="panel">
+                <h2>Top Suffixes by Frequency</h2>
+                <table id="tbl-freq-suffix" class="sortable">
+                    <thead>
+                        <tr>
+                            <th data-sortable>Mod Family</th>
                             <th data-sortable>Type</th>
                             <th data-sortable style="text-align: right">
                                 Count
@@ -403,6 +448,35 @@
                     </thead>
                     <tbody></tbody>
                 </table>
+            </div>
+            <div class="panel full">
+                <h2>📊 Market Statistics & Insights</h2>
+                <div class="stats-grid" id="stats-grid">
+                    <div class="stat-card">
+                        <h3>Total Listings</h3>
+                        <div class="value" id="stat-total">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Avg Price (All)</h3>
+                        <div class="value" id="stat-avg-price">0 div</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Most Expensive</h3>
+                        <div class="value" id="stat-most-expensive">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Most Common Mod</h3>
+                        <div class="value" id="stat-most-common">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Price Volatility</h3>
+                        <div class="value" id="stat-volatility">0%</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Data Freshness</h3>
+                        <div class="value" id="stat-freshness">-</div>
+                    </div>
+                </div>
             </div>
             <div class="panel full">
                 <h2>Avg Price Over Time (rare)</h2>
@@ -530,6 +604,111 @@
                 }
             }
 
+            function updateMarketStatistics(data) {
+                // Total Listings - sum from affix_frequency
+                const affixFreq = data.affix_frequency || [];
+                const totalListings = affixFreq.reduce(
+                    (sum, r) => sum + (r.n || 0),
+                    0,
+                );
+                document.getElementById("stat-total").textContent =
+                    totalListings.toLocaleString();
+
+                // Avg Price (All) - weighted average across all affix_price entries
+                const affixPrice = data.affix_price || [];
+                let totalPriceValue = 0;
+                let totalCount = 0;
+                affixPrice.forEach((r) => {
+                    if (r.avg_div != null && r.n) {
+                        totalPriceValue += (r.avg_div || 0) * (r.n || 0);
+                        totalCount += r.n || 0;
+                    }
+                });
+                const avgPriceAll =
+                    totalCount > 0 ? totalPriceValue / totalCount : 0;
+                document.getElementById("stat-avg-price").textContent =
+                    fmt(avgPriceAll) + " div";
+
+                // Most Expensive - highest max_div from affix_price
+                const priceData = data.affix_price || [];
+                const mostExpensive =
+                    priceData.length > 0
+                        ? Math.max(
+                              ...priceData
+                                  .map((r) => r.max_div || 0)
+                                  .filter((d) => d > 0),
+                          )
+                        : 0;
+                document.getElementById("stat-most-expensive").textContent =
+                    mostExpensive > 0 ? fmt(mostExpensive, 0) + " div" : "-";
+
+                // Most Common Mod - top entry from affix_frequency
+                const freqData = data.affix_frequency || [];
+                if (freqData.length > 0) {
+                    const topMod = [...freqData].sort(
+                        (a, b) => (b.n || 0) - (a.n || 0),
+                    )[0];
+                    const modName = strip(topMod.mod_family);
+                    const modCount = topMod.n || 0;
+                    document.getElementById("stat-most-common").textContent =
+                        `${modName} (${modCount})`;
+                } else {
+                    document.getElementById("stat-most-common").textContent =
+                        "-";
+                }
+
+                // Price Volatility - coefficient of variation from affix_price
+                let volatility = 0;
+                if (affixPrice.length > 1) {
+                    const validPrices = affixPrice
+                        .map((r) => r.avg_div || 0)
+                        .filter((p) => p > 0);
+                    if (validPrices.length > 1) {
+                        const mean =
+                            validPrices.reduce((a, b) => a + b, 0) /
+                            validPrices.length;
+                        const variance =
+                            validPrices.reduce(
+                                (sum, p) => sum + Math.pow(p - mean, 2),
+                                0,
+                            ) / validPrices.length;
+                        const stdDev = Math.sqrt(variance);
+                        volatility = (stdDev / mean) * 100;
+                    }
+                }
+                document.getElementById("stat-volatility").textContent =
+                    fmt(volatility, 1) + "%";
+
+                // Data Freshness - time since latest snapshot from price_over_time
+                const timeData = data.price_over_time || [];
+                if (timeData.length > 0) {
+                    const latestTimestamp = Math.max(
+                        ...timeData.map((r) => new Date(r.ts).getTime()),
+                    );
+                    const now = new Date().getTime();
+                    const diffHours = Math.floor(
+                        (now - latestTimestamp) / (1000 * 60 * 60),
+                    );
+                    const diffMins = Math.floor(
+                        ((now - latestTimestamp) % (1000 * 60 * 60)) /
+                            (1000 * 60),
+                    );
+                    let freshnessText = "";
+                    if (diffHours < 1) {
+                        freshnessText = "Just now";
+                    } else if (diffHours < 24) {
+                        freshnessText = `${diffHours}h ${diffMins}m ago`;
+                    } else {
+                        freshnessText = `${Math.floor(diffHours / 24)}d ago`;
+                    }
+                    document.getElementById("stat-freshness").textContent =
+                        freshnessText;
+                } else {
+                    document.getElementById("stat-freshness").textContent =
+                        "Unknown";
+                }
+            }
+
             async function refresh() {
                 const loadingOverlay =
                     document.getElementById("loading-overlay");
@@ -540,10 +719,28 @@
                     if (!res.ok) throw new Error(await res.text());
                     const data = await res.json();
 
-                    renderTable("tbl-freq", data.affix_frequency, [
+                    // Split affix_frequency by slot (prefix/suffix)
+                    const affixFreq = data.affix_frequency || [];
+                    const prefixes = affixFreq.filter(
+                        (r) => r.slot === "prefix",
+                    );
+                    const suffixes = affixFreq.filter(
+                        (r) => r.slot === "suffix",
+                    );
+
+                    // Render prefixes table (without slot column since all are prefixes)
+                    renderTable("tbl-freq-prefix", prefixes, [
                         (r) => `<td class="mod">${strip(r.mod_family)}</td>`,
+                        (r) => `<td class="type">${r.tablet_type}</td>`,
+                        (r) => `<td class="num">${r.n}</td>`,
+                        (r) => `<td class="price">${fmt(r.avg_div)}</td>`,
                         (r) =>
-                            `<td><span class="slot-${r.slot}">${r.slot}</span></td>`,
+                            `<td class="range">${fmt(r.min_div, 0)}–${fmt(r.max_div, 0)}</td>`,
+                    ]);
+
+                    // Render suffixes table (without slot column since all are suffixes)
+                    renderTable("tbl-freq-suffix", suffixes, [
+                        (r) => `<td class="mod">${strip(r.mod_family)}</td>`,
                         (r) => `<td class="type">${r.tablet_type}</td>`,
                         (r) => `<td class="num">${r.n}</td>`,
                         (r) => `<td class="price">${fmt(r.avg_div)}</td>`,
@@ -572,6 +769,9 @@
                         (r) =>
                             `<td class="price">${fmt(r.avg_div)} <span class="pct-change ${r.pct >= 0 ? "positive" : "negative"}">${r.pct >= 0 ? "↑" : "↓"} ${Math.abs(r.pct)}%</span></td>`,
                     ]);
+
+                    // Calculate and populate Market Statistics & Insights
+                    updateMarketStatistics(data);
 
                     const timeData = data.price_over_time || [];
                     const types = [
