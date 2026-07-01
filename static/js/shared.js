@@ -110,9 +110,81 @@ const ThemeManager = {
 
 // Initialize theme manager when DOM is ready
 if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", () => ThemeManager.init());
+  document.addEventListener("DOMContentLoaded", () => {
+    ThemeManager.init();
+    initTableSorting();
+  });
 } else {
   ThemeManager.init();
+  initTableSorting();
+}
+
+/**
+ * Table Sorting Functionality
+ * Makes table headers clickable to sort columns
+ */
+function initTableSorting() {
+  // Add sortable class and click handlers to all sortable tables
+  document.querySelectorAll("table.sortable").forEach((table) => {
+    const headers = table.querySelectorAll("thead th[data-sortable]");
+    headers.forEach((th, index) => {
+      th.style.cursor = "pointer";
+      th.style.userSelect = "none";
+      th.addEventListener("click", () => {
+        sortTable(table, index, th);
+      });
+    });
+  });
+}
+
+/**
+ * Sort a table by column
+ * @param {HTMLElement} table - The table element
+ * @param {number} columnIndex - The column index to sort by
+ * @param {HTMLElement} header - The header element that was clicked
+ */
+function sortTable(table, columnIndex, header) {
+  const tbody = table.querySelector("tbody");
+  if (!tbody) return;
+
+  const rows = Array.from(tbody.querySelectorAll("tr"));
+  if (rows.length === 0) return;
+
+  // Get current sort direction from the header
+  const currentDir = header.getAttribute("data-sort-dir") || "none";
+  const nextDir = currentDir === "asc" ? "desc" : "asc";
+
+  // Remove sort indicators from all headers in this table
+  table.querySelectorAll("thead th[data-sortable]").forEach((th) => {
+    th.removeAttribute("data-sort-dir");
+    th.textContent = th.textContent.replace(/ [↑↓]/, "");
+  });
+
+  // Set sort direction on clicked header
+  header.setAttribute("data-sort-dir", nextDir);
+  header.textContent += nextDir === "asc" ? " ↑" : " ↓";
+
+  // Sort rows
+  rows.sort((a, b) => {
+    const aVal = a.cells[columnIndex]?.textContent.trim() || "";
+    const bVal = b.cells[columnIndex]?.textContent.trim() || "";
+
+    // Try numeric comparison first
+    const aNum = parseFloat(aVal.replace(/[^\d.]/g, ""));
+    const bNum = parseFloat(bVal.replace(/[^\d.]/g, ""));
+
+    if (!isNaN(aNum) && !isNaN(bNum)) {
+      return nextDir === "asc" ? aNum - bNum : bNum - aNum;
+    }
+
+    // Fall back to string comparison
+    return nextDir === "asc"
+      ? aVal.localeCompare(bVal)
+      : bVal.localeCompare(aVal);
+  });
+
+  // Re-append sorted rows
+  rows.forEach((row) => tbody.appendChild(row));
 }
 
 /**

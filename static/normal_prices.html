@@ -272,14 +272,22 @@
         <div class="grid">
             <div class="panel full">
                 <h2>Current Prices by Tablet Type</h2>
-                <table id="tbl-prices">
+                <table id="tbl-prices" class="sortable">
                     <thead>
                         <tr>
-                            <th>Tablet Type</th>
-                            <th style="text-align: right">Count</th>
-                            <th style="text-align: right">Min div</th>
-                            <th style="text-align: right">Max div</th>
-                            <th style="text-align: right">Avg div</th>
+                            <th data-sortable>Tablet Type</th>
+                            <th data-sortable style="text-align: right">
+                                Count
+                            </th>
+                            <th data-sortable style="text-align: right">
+                                Min div
+                            </th>
+                            <th data-sortable style="text-align: right">
+                                Max div
+                            </th>
+                            <th data-sortable style="text-align: right">
+                                Avg div
+                            </th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -535,6 +543,6 @@
                 });
             }
         </script>
-    <script src="/js/shared.js"></script>
+        <script src="/js/shared.js"></script>
     </body>
 </html>

@@ -317,15 +317,21 @@
         <div class="grid">
             <div class="panel full">
                 <h2>Top Affixes by Frequency</h2>
-                <table id="tbl-freq">
+                <table id="tbl-freq" class="sortable">
                     <thead>
                         <tr>
-                            <th>Mod Family</th>
-                            <th>Slot</th>
-                            <th>Type</th>
-                            <th style="text-align: right">Count</th>
-                            <th style="text-align: right">Avg div</th>
-                            <th style="text-align: right">Range</th>
+                            <th data-sortable>Mod Family</th>
+                            <th data-sortable>Slot</th>
+                            <th data-sortable>Type</th>
+                            <th data-sortable style="text-align: right">
+                                Count
+                            </th>
+                            <th data-sortable style="text-align: right">
+                                Avg div
+                            </th>
+                            <th data-sortable style="text-align: right">
+                                Range
+                            </th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -333,13 +339,17 @@
             </div>
             <div class="panel">
                 <h2>Highest Avg Price by Affix</h2>
-                <table id="tbl-price">
+                <table id="tbl-price" class="sortable">
                     <thead>
                         <tr>
-                            <th>Mod Family</th>
-                            <th style="text-align: right">Avg div</th>
-                            <th style="text-align: right">Range</th>
-                            <th style="text-align: right">n</th>
+                            <th data-sortable>Mod Family</th>
+                            <th data-sortable style="text-align: right">
+                                Avg div
+                            </th>
+                            <th data-sortable style="text-align: right">
+                                Range
+                            </th>
+                            <th data-sortable style="text-align: right">n</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -347,13 +357,17 @@
             </div>
             <div class="panel">
                 <h2>Likely-Sold Velocity (lift proxy)</h2>
-                <table id="tbl-velocity">
+                <table id="tbl-velocity" class="sortable">
                     <thead>
                         <tr>
-                            <th>Mod Family</th>
-                            <th>Type</th>
-                            <th style="text-align: right">% sold</th>
-                            <th style="text-align: right">Avg div</th>
+                            <th data-sortable>Mod Family</th>
+                            <th data-sortable>Type</th>
+                            <th data-sortable style="text-align: right">
+                                % sold
+                            </th>
+                            <th data-sortable style="text-align: right">
+                                Avg div
+                            </th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -369,13 +383,15 @@
             </div>
             <div class="panel">
                 <h2>Top Affix Combos</h2>
-                <table id="tbl-combo">
+                <table id="tbl-combo" class="sortable">
                     <thead>
                         <tr>
-                            <th>Mod A + Mod B</th>
-                            <th>Type</th>
-                            <th style="text-align: right">n</th>
-                            <th style="text-align: right">Avg div</th>
+                            <th data-sortable>Mod A + Mod B</th>
+                            <th data-sortable>Type</th>
+                            <th data-sortable style="text-align: right">n</th>
+                            <th data-sortable style="text-align: right">
+                                Avg div
+                            </th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -383,14 +399,20 @@
             </div>
             <div class="panel">
                 <h2>Buy Signals (project craft)</h2>
-                <table id="tbl-buy">
+                <table id="tbl-buy" class="sortable">
                     <thead>
                         <tr>
-                            <th>Type</th>
-                            <th style="text-align: right">Buy</th>
-                            <th style="text-align: right">Rare med</th>
-                            <th style="text-align: right">Profit</th>
-                            <th style="text-align: right">Junk</th>
+                            <th data-sortable>Type</th>
+                            <th data-sortable style="text-align: right">Buy</th>
+                            <th data-sortable style="text-align: right">
+                                Rare med
+                            </th>
+                            <th data-sortable style="text-align: right">
+                                Profit
+                            </th>
+                            <th data-sortable style="text-align: right">
+                                Junk
+                            </th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -398,12 +420,12 @@
             </div>
             <div class="panel full">
                 <h2>Stash Regex</h2>
-                <table id="tbl-regex">
+                <table id="tbl-regex" class="sortable">
                     <thead>
                         <tr>
-                            <th>Mode</th>
-                            <th>Label</th>
-                            <th>Regex</th>
+                            <th data-sortable>Mode</th>
+                            <th data-sortable>Label</th>
+                            <th data-sortable>Regex</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -742,6 +764,6 @@
                 });
             }
         </script>
-    <script src="/js/shared.js"></script>
+        <script src="/js/shared.js"></script>
     </body>
 </html>
