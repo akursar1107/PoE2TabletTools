@@ -550,6 +550,12 @@
         <script src="/js/config.js"></script>
         <script src="/js/shared.js"></script>
         <script>
+            // Ensure ColorCoding is available
+            if (typeof ColorCoding === "undefined") {
+                console.error(
+                    "ColorCoding not defined! Check shared.js loading order.",
+                );
+            }
             const API = apiUrl("") || window.location.origin;
             const INTERVAL = 30;
             let countdown = INTERVAL;
