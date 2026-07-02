@@ -1,1250 +1,301 @@
 <!doctype html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <title>PoE2 Tablet Modifiers Reference</title>
-        <style>
-            * {
-                box-sizing: border-box;
-                margin: 0;
-                padding: 0;
-            }
-            body {
-                background: #0e0e0e;
-                color: #c9b99a;
-                font-family: "Segoe UI", sans-serif;
-                font-size: 13px;
-            }
-            header {
-                padding: 14px 24px;
-                border-bottom: 1px solid #2a2a2a;
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-            }
-            header h1 {
-                font-size: 17px;
-                color: #e8d5a3;
-                letter-spacing: 1px;
-            }
-            #status {
-                font-size: 12px;
-                color: #666;
-            }
-            #status.ok {
-                color: #5a9e5a;
-            }
-            #refresh-bar {
-                height: 2px;
-                background: #a08050;
-                transition: width 0.5s linear;
-                width: 100%;
-            }
-            .top-nav {
-                background: #1a1a1a;
-                border-bottom: 1px solid #2a2a2a;
-                padding: 8px 24px;
-                display: flex;
-                gap: 24px;
-            }
-            .top-nav a {
-                color: #888;
-                text-decoration: none;
-                font-size: 12px;
-                padding: 4px 8px;
-                border-radius: 4px;
-                transition: all 0.2s;
-            }
-            .top-nav a:hover {
-                color: #c8a96e;
-                background: #2a2a2a;
-            }
-            .top-nav a.active {
-                color: #c8a96e;
-                background: #2a2a2a;
-            }
-            .tablet-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-                gap: 14px;
-                padding: 14px;
-            }
-            .tablet-card {
-                background: #141414;
-                border: 1px solid #2a2a2a;
-                border-radius: 6px;
-                overflow: hidden;
-            }
-            .tablet-card h3 {
-                padding: 9px 14px;
-                font-size: 13px;
-                color: #c8a96e;
-                background: #1a1a1a;
-                border-bottom: 1px solid #2a2a2a;
-                text-transform: capitalize;
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                gap: 8px;
-            }
-            .tablet-card h3:hover {
-                background: #2a2a2a;
-            }
-            .tablet-card h3::before {
-                content: "▶ ";
-                font-size: 10px;
-                color: #666;
-            }
-            .tablet-card h3.expanded::before {
-                content: "▼ ";
-            }
-            .mod-list {
-                padding: 14px;
-                display: none;
-            }
-            .mod-list.expanded {
-                display: block;
-            }
-            .mod-section {
-                margin-bottom: 16px;
-            }
-            .mod-section:last-child {
-                margin-bottom: 0;
-            }
-            .mod-section-header {
-                font-size: 11px;
-                color: #a08050;
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
-                margin-bottom: 8px;
-                padding-bottom: 4px;
-                border-bottom: 1px solid #2a2a2a;
-            }
-            .mod-group {
-                margin-bottom: 12px;
-                padding-bottom: 12px;
-                border-bottom: 1px solid #1e1e1e;
-            }
-            .mod-group:last-child {
-                border-bottom: none;
-                margin-bottom: 0;
-                padding-bottom: 0;
-            }
-            .mod-group-title {
-                font-size: 11px;
-                color: #888;
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
-                margin-bottom: 6px;
-                display: flex;
-                align-items: center;
-                gap: 6px;
-            }
-            .mod-type-badge {
-                font-size: 10px;
-                padding: 1px 4px;
-                border-radius: 2px;
-                font-weight: bold;
-            }
-            .prefix-badge {
-                color: #996666;
-                background: rgba(153, 102, 102, 0.15);
-            }
-            .suffix-badge {
-                color: #669966;
-                background: rgba(102, 153, 102, 0.15);
-            }
-            .mod-item {
-                font-size: 12px;
-                color: #aaa;
-                padding: 3px 0;
-                padding-left: 12px;
-                border-left: 2px solid #333;
-                margin: 2px 0;
-            }
-            .mod-item:hover {
-                color: #c8a96e;
-                border-left-color: #a08050;
-            }
-            .mod-description {
-                color: #777;
-                font-size: 11px;
-                font-weight: normal;
-            }
-            .mod-item:hover .mod-description {
-                color: #999;
-            }
-            .category-badge {
-                font-size: 10px;
-                padding: 1px 4px;
-                border-radius: 2px;
-                margin-right: 4px;
-                display: inline-block;
-            }
-            .category-General {
-                color: #888;
-                background: rgba(136, 136, 136, 0.15);
-            }
-            .category-Abyss {
-                color: #9966cc;
-                background: rgba(153, 102, 204, 0.15);
-            }
-            .category-Breach {
-                color: #cc6666;
-                background: rgba(204, 102, 102, 0.15);
-            }
-            .category-Delirium {
-                color: #cc6699;
-                background: rgba(204, 102, 153, 0.15);
-            }
-            .category-Expedition {
-                color: #999966;
-                background: rgba(153, 153, 102, 0.15);
-            }
-            .category-Ritual {
-                color: #6699cc;
-                background: rgba(102, 153, 204, 0.15);
-            }
-            .category-Temple {
-                color: #996633;
-                background: rgba(153, 102, 51, 0.15);
-            }
-            .category-Boss {
-                color: #cc9966;
-                background: rgba(204, 153, 102, 0.15);
-            }
-            .category-Monsters {
-                color: #cc6633;
-                background: rgba(204, 102, 51, 0.15);
-            }
-            .category-Items {
-                color: #66cc99;
-                background: rgba(102, 204, 153, 0.15);
-            }
-            .category-Containers {
-                color: #999966;
-                background: rgba(153, 153, 102, 0.15);
-            }
-            .category-Shrines {
-                color: #66cccc;
-                background: rgba(102, 204, 204, 0.15);
-            }
-            .category-Spirit {
-                color: #9966cc;
-                background: rgba(153, 102, 204, 0.15);
-            }
-            .category-Essence {
-                color: #cc99cc;
-                background: rgba(204, 153, 204, 0.15);
-            }
-            .category-Maps {
-                color: #669966;
-                background: rgba(102, 153, 102, 0.15);
-            }
-            .category-Currency {
-                color: #cccc66;
-                background: rgba(204, 204, 102, 0.15);
-            }
-            .category-Progression {
-                color: #66cc66;
-                background: rgba(102, 204, 102, 0.15);
-            }
-            .highlight {
-                background: rgba(255, 255, 0, 0.3);
-                padding: 0 1px;
-                border-radius: 1px;
-            }
-            .empty-message {
-                color: #555 !important;
-                font-style: italic;
-            }
-            @media (max-width: 768px) {
-                .tablet-grid {
-                    grid-template-columns: 1fr;
-                }
-                .filter-bar {
-                    flex-wrap: wrap;
-                    gap: 8px;
-                }
-                .filter-bar input,
-                .filter-bar select {
-                    width: 100%;
-                }
-            }
-            .filter-bar {
-                padding: 14px 24px;
-                border-bottom: 1px solid #2a2a2a;
-                background: #1a1a1a;
-                display: flex;
-                align-items: center;
-                gap: 12px;
-            }
-            .filter-bar input {
-                background: #2a2a2a;
-                border: 1px solid #3a3a3a;
-                color: #c9b99a;
-                padding: 6px 10px;
-                border-radius: 4px;
-                font-size: 12px;
-                width: 200px;
-            }
-            .filter-bar input:focus {
-                outline: none;
-                border-color: #a08050;
-            }
-            .count-badge {
-                font-size: 10px;
-                color: #666;
-                background: #2a2a2a;
-                padding: 1px 6px;
-                border-radius: 4px;
-            }
-            .info-text {
-                padding: 14px 24px;
-                color: #666;
-                font-size: 12px;
-            }
-            .info-text a {
-                color: #888;
-            }
-            .highlight {
-                background: rgba(255, 255, 0, 0.3);
-                padding: 0 1px;
-                border-radius: 1px;
-            }
-            .copy-text {
-                cursor: pointer;
-            }
-            .copy-text:hover {
-                opacity: 0.8;
-            }
-            .copied-notification {
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                background: #2a2a2a;
-                border: 1px solid #a08050;
-                color: #c8a96e;
-                padding: 10px 16px;
-                border-radius: 4px;
-                font-size: 12px;
-                z-index: 1000;
-                animation: slideIn 0.3s ease-out;
-            }
-            @keyframes slideIn {
-                from {
-                    transform: translateX(100%);
-                    opacity: 0;
-                }
-                to {
-                    transform: translateX(0);
-                    opacity: 1;
-                }
-            }
-            .fav-star {
-                cursor: pointer;
-                margin-left: 8px;
-                color: #666;
-                font-size: 14px;
-                transition: color 0.2s;
-            }
-            .fav-star:hover {
-                color: #ffcc00;
-            }
-            .fav-star.favorited {
-                color: #ffcc00;
-            }
-            .loading-overlay {
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: rgba(0, 0, 0, 0.8);
-                display: none;
-                align-items: center;
-                justify-content: center;
-                z-index: 10000;
-            }
-            .loading-overlay.visible {
-                display: flex;
-            }
-            .spinner {
-                border: 3px solid #333;
-                border-top: 3px solid #a08050;
-                border-radius: 50%;
-                width: 40px;
-                height: 40px;
-                animation: spin 1s linear infinite;
-                margin-right: 16px;
-            }
-            @keyframes spin {
-                0% {
-                    transform: rotate(0deg);
-                }
-                100% {
-                    transform: rotate(360deg);
-                }
-            }
-            .loading-text {
-                font-size: 14px;
-                color: #c8a96e;
-            }
-            .empty-state {
-                text-align: center;
-                padding: 40px 20px;
-                color: #666;
-                font-size: 12px;
-            }
-            .empty-state-icon {
-                font-size: 48px;
-                margin-bottom: 12px;
-                opacity: 0.5;
-            }
-            .mod-item.rare {
-                border-left-color: #a08050;
-                background: rgba(160, 128, 80, 0.05);
-            }
-            .mod-item.rare:hover {
-                background: rgba(160, 128, 80, 0.1);
-            }
-            .rarity-badge {
-                display: inline-block;
-                font-size: 10px;
-                padding: 1px 4px;
-                border-radius: 2px;
-                margin-left: 6px;
-                font-weight: bold;
-            }
-            .rarity-common {
-                color: #777;
-            }
-            .rarity-uncommon {
-                color: #999;
-            }
-            .rarity-rare {
-                color: #ffcc00;
-            }
-            .rarity-unique {
-                color: #ff6600;
-            }
-            .tooltip {
-                position: relative;
-            }
-            .tooltip::after {
-                content: attr(data-tooltip);
-                position: absolute;
-                bottom: 100%;
-                left: 50%;
-                transform: translateX(-50%);
-                padding: 6px 12px;
-                background: #2a2a2a;
-                border: 1px solid #3a3a3a;
-                border-radius: 4px;
-                font-size: 11px;
-                color: #c9b99a;
-                white-space: nowrap;
-                opacity: 0;
-                visibility: hidden;
-                transition:
-                    opacity 0.2s,
-                    visibility 0.2s;
-                z-index: 1000;
-                margin-bottom: 8px;
-            }
-            .tooltip:hover::after {
-                opacity: 1;
-                visibility: visible;
-            }
-            .copy-text {
-                cursor: pointer;
-            }
-            .copy-text:hover {
-                opacity: 0.8;
-            }
-        </style>
-    </head>
-    <body>
-        <div id="refresh-bar"></div>
-        <div class="loading-overlay" id="loading-overlay">
-            <div>
-                <div class="spinner"></div>
-                <div class="loading-text">Loading modifiers...</div>
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PoE2 Tablet Modifiers Reference</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1a1a2e; }
+        ::-webkit-scrollbar-thumb { background: #2d2d44; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #3d3d54; }
+        .modifier-item { transition: all 0.2s ease; }
+        .modifier-item:hover { background-color: rgba(255,255,255,0.05); }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <header class="mb-8">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h1 class="text-3xl font-bold text-white">PoE2 Tablet Modifiers Reference</h1>
+                    <p class="text-gray-400 mt-1">Global prefixes + Shared & Unique suffixes per tablet type</p>
+                </div>
+                <button onclick="fetchModifiers()" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded-lg text-sm text-white transition-colors flex items-center space-x-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    <span>Refresh</span>
+                </button>
             </div>
-        </div>
-        <header>
-            <h1>⬡ Tablet Modifiers Reference</h1>
-            <span id="status">Static Data</span>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-gray-800 border border-gray-700 rounded-lg p-4 text-center">
+                    <div class="text-2xl mb-2">🏺</div>
+                    <p class="text-sm text-gray-400 mb-1">League</p>
+                    <p class="text-xl font-bold text-amber-400" id="current-league">Loading...</p>
+                </div>
+                <div class="bg-gray-800 border border-gray-700 rounded-lg p-4 text-center">
+                    <div class="text-2xl mb-2">📋</div>
+                    <p class="text-sm text-gray-400 mb-1">Tablet Types</p>
+                    <p class="text-xl font-bold text-amber-400" id="tablet-count">0</p>
+                </div>
+                <div class="bg-gray-800 border border-gray-700 rounded-lg p-4 text-center">
+                    <div class="text-2xl mb-2">✨</div>
+                    <p class="text-sm text-gray-400 mb-1">Prefixes</p>
+                    <p class="text-xl font-bold text-amber-400" id="prefix-count">0</p>
+                </div>
+                <div class="bg-gray-800 border border-gray-700 rounded-lg p-4 text-center">
+                    <div class="text-2xl mb-2">🔗</div>
+                    <p class="text-sm text-gray-400 mb-1">Shared Suffixes</p>
+                    <p class="text-xl font-bold text-emerald-400" id="shared-suffix-count">0</p>
+                </div>
+            </div>
         </header>
 
-        <div class="top-nav">
-            <a href="/">Home</a>
-            <a href="/dashboard">Main Dashboard</a>
-            <a href="/normal-prices">Normal Prices</a>
-            <a href="/modifiers" class="active">Modifiers</a>
-            <a href="/compare-tablets">Compare</a>
-            <a href="/favorites">Favorites</a>
-            <div class="global-search">
-                <span class="global-search-icon">🔍</span>
-                <input
-                    type="text"
-                    id="global-search"
-                    placeholder="Search modifiers..."
-                    title="Press Ctrl+K or / to search"
-                />
-            </div>
-        </div>
-
-        <div class="filter-bar">
-            <input
-                type="text"
-                id="filter-input"
-                placeholder="Filter modifiers..."
-            />
-            <button
-                id="refresh-data"
-                class="tooltip"
-                data-tooltip="Refresh data"
-                onclick="loadData()"
-                style="
-                    padding: 6px 12px;
-                    background: #2a2a2a;
-                    border: 1px solid #3a3a3a;
-                    color: #c8a96e;
-                    border-radius: 4px;
-                    cursor: pointer;
-                    font-size: 12px;
-                    margin-left: 8px;
-                "
-            >
-                🔄
-            </button>
-            <button
-                id="expand-all"
-                class="tooltip"
-                data-tooltip="Expand all tablets"
-                style="
-                    padding: 6px 12px;
-                    background: #2a2a2a;
-                    border: 1px solid #3a3a3a;
-                    color: #c9b99a;
-                    border-radius: 4px;
-                    cursor: pointer;
-                    font-size: 12px;
-                    margin-left: 8px;
-                "
-            >
-                Expand All
-            </button>
-            <button
-                id="collapse-all"
-                class="tooltip"
-                data-tooltip="Collapse all tablets"
-                style="
-                    padding: 6px 12px;
-                    background: #2a2a2a;
-                    border: 1px solid #3a3a3a;
-                    color: #c9b99a;
-                    border-radius: 4px;
-                    cursor: pointer;
-                    font-size: 12px;
-                    margin-left: 8px;
-                "
-            >
-                Collapse All
-            </button>
-        </div>
-        <div class="filter-bar" style="border-top: none; padding-top: 0">
-            <input
-                type="text"
-                id="global-filter-input"
-                placeholder="Global search (all tablets)..."
-                style="width: 300px"
-            />
-            <span
-                id="global-filter-results"
-                style="color: #666; font-size: 12px; margin-left: 12px"
-            ></span>
-        </div>
-        <div class="filter-bar" style="border-top: none; padding-top: 0">
-            <span style="color: #888; font-size: 12px; margin-right: 12px"
-                >Filter by category:</span
-            >
-            <select
-                id="category-filter"
-                style="
-                    background: #2a2a2a;
-                    border: 1px solid #3a3a3a;
-                    color: #c9b99a;
-                    padding: 6px 10px;
-                    border-radius: 4px;
-                    font-size: 12px;
-                "
-            >
-                <option value="">All Categories</option>
-            </select>
-            <span
-                style="
-                    color: #888;
-                    font-size: 12px;
-                    margin-left: 20px;
-                    margin-right: 12px;
-                "
-                >Sort by:</span
-            >
-            <select
-                id="sort-select"
-                style="
-                    background: #2a2a2a;
-                    border: 1px solid #3a3a3a;
-                    color: #c9b99a;
-                    padding: 6px 10px;
-                    border-radius: 4px;
-                    font-size: 12px;
-                "
-            >
-                <option value="name">Name (A-Z)</option>
-                <option value="name-desc">Name (Z-A)</option>
-                <option value="category">Category</option>
-                <option value="group">Group Name</option>
-            </select>
-        </div>
-
-        <div class="info-text">
-            Data source:
-            <a
-                href="https://www.poe2wiki.net/wiki/List_of_modifiers_for_tablets"
-                target="_blank"
-                >PoE2 Wiki</a
-            >
-            | Showing all modifiers with descriptions. Total modifiers:
-            <span id="total-mods">0</span>
-            | Last updated: <span id="last-updated">Just now</span>
-        </div>
-
-        <div class="tablet-grid" id="tablet-grid">
-            <!-- Populated by JavaScript -->
-        </div>
-
-        <script>
-            const API = window.location.origin || "http://localhost:8001";
-            let allData = [];
-
-            async function loadData() {
-                const loadingOverlay =
-                    document.getElementById("loading-overlay");
-                loadingOverlay.classList.add("visible");
-
-                try {
-                    const res = await fetch(
-                        `${API}/api/reports/mod-reference-separated`,
-                    );
-                    if (res.ok) {
-                        allData = await res.json();
-                        renderTablets();
-
-                        // Update last updated timestamp
-                        const now = new Date();
-                        const timeStr = now.toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                        });
-                        document.getElementById("last-updated").textContent =
-                            timeStr;
-
-                        // Check URL hash for tablet filter
-                        const hash = window.location.hash.slice(1);
-                        if (hash) {
-                            document.getElementById(
-                                "global-filter-input",
-                            ).value = hash;
-                            applyGlobalFilter(hash);
-                        }
-                    } else {
-                        showError(
-                            "Failed to load data: Server returned error " +
-                                res.status,
-                        );
-                    }
-                } catch (e) {
-                    console.error("Failed to load data:", e);
-                    showError("Failed to load data: " + e.message);
-                } finally {
-                    loadingOverlay.classList.remove("visible");
-                }
-            }
-
-            function showError(message) {
-                const grid = document.getElementById("tablet-grid");
-                grid.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">⚠️</div>
-                        <div>${message}</div>
-                        <button onclick="location.reload()" style="margin-top: 16px; padding: 8px 16px; background: #1a1a1a; border: 1px solid #a08050; color: #c8a96e; border-radius: 4px; cursor: pointer;">Retry</button>
+        <main class="space-y-6">
+            <section class="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden">
+                <button onclick="toggleSection('prefixes')" class="w-full p-4 text-left flex items-center justify-between hover:bg-gray-700/50 transition-colors">
+                    <div class="flex items-center space-x-3">
+                        <span class="text-2xl">✨</span>
+                        <h2 class="text-xl font-semibold text-white">Global Prefixes</h2>
+                        <span class="text-sm text-gray-400 bg-gray-700 px-2 py-1 rounded-full" id="prefix-badge">0</span>
                     </div>
-                `;
-            }
+                    <svg id="prefixes-icon" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-400 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                </button>
+                <div id="prefixes-content" class="p-4 pt-0"><ul class="space-y-2" id="prefix-list"><li class="text-gray-500 text-center py-4">Loading...</li></ul></div>
+            </section>
 
-            // Update URL hash when global filter changes
-            function applyGlobalFilter(query) {
-                const filterInput = document.getElementById(
-                    "global-filter-input",
-                );
-                filterInput.value = query;
-                if (query.length >= 2) {
-                    window.location.hash = query;
-                } else {
-                    window.location.hash = "";
+            <section class="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden">
+                <button onclick="toggleSection('shared-suffixes')" class="w-full p-4 text-left flex items-center justify-between hover:bg-gray-700/50 transition-colors">
+                    <div class="flex items-center space-x-3">
+                        <span class="text-2xl">🔗</span>
+                        <h2 class="text-xl font-semibold text-white">Shared Suffixes</h2>
+                        <span class="text-sm text-gray-400 bg-emerald-900/20 text-emerald-400 px-2 py-1 rounded-full" id="shared-badge">0</span>
+                    </div>
+                    <svg id="shared-suffixes-icon" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-400 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                </button>
+                <div id="shared-suffixes-content" class="p-4 pt-0"><ul class="space-y-2" id="shared-suffix-list"><li class="text-gray-500 text-center py-4">Loading...</li></ul></div>
+            </section>
+
+            <div class="space-y-4" id="unique-sections"></div>
+        </main>
+
+        <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})" class="fixed bottom-6 right-6 p-3 bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded-full text-white transition-colors shadow-lg z-50" title="Back to top">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>
+        </button>
+    </div>
+
+    <script>
+        const tabletInfo = {
+            ritual: { icon: "🏺", name: "Ritual", color: "amber" },
+            breach: { icon: "⚡", name: "Breach", color: "purple" },
+            delirium: { icon: "🌀", name: "Delirium", color: "green" },
+            expedition: { icon: "⛺", name: "Expedition", color: "blue" },
+            temple: { icon: "🏛️", name: "Temple", color: "orange" },
+            abyss: { icon: "🕳️", name: "Abyss", color: "red" },
+            irradiated: { icon: "☢️", name: "Irradiated", color: "emerald" },
+            overseer: { icon: "👁️", name: "Overseer", color: "cyan" }
+        };
+
+        const expandedSections = new Set(['prefixes', 'shared-suffixes']);
+
+        function toggleSection(sectionId) {
+            const content = document.getElementById(sectionId + '-content');
+            const icon = document.getElementById(sectionId + '-icon');
+            if (expandedSections.has(sectionId)) {
+                expandedSections.delete(sectionId);
+                content.style.display = 'none';
+                icon.style.transform = 'rotate(0deg)';
+            } else {
+                expandedSections.add(sectionId);
+                content.style.display = 'block';
+                icon.style.transform = 'rotate(180deg)';
+            }
+        }
+
+        function toggleTabletSection(tabletType) {
+            const sectionId = `tablet-${tabletType}`;
+            const content = document.getElementById(sectionId + '-content');
+            const icon = document.querySelector(`#${sectionId} .tablet-icon`);
+            if (content.style.display === 'none' || !content.style.display) {
+                content.style.display = 'block';
+                icon.style.transform = 'rotate(180deg)';
+            } else {
+                content.style.display = 'none';
+                icon.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        function formatModName(name) {
+            if (!name) return "";
+            return name.replace(/of /g, "").replace(/^The /g, "").replace(/^A /g, "").replace(/^An /g, "").replace(/'s$/g, "").trim();
+        }
+
+        function formatDescription(desc) {
+            if (!desc) return "";
+            return desc.replace(/Map /g, "").replace(/ in Map/g, "").replace(/has /g, "").replace(/#%/g, "").replace(/\[.*?\]/g, "").replace(/  /g, " ").trim();
+        }
+
+        function extractAllModifiers(data, type) {
+            const allMods = [];
+            const seen = new Set();
+            for (const tablet of data) {
+                const mods = tablet[type];
+                for (const category of Object.values(mods)) {
+                    for (const mod of category.mods) {
+                        if (!seen.has(mod.name)) {
+                            seen.add(mod.name);
+                            allMods.push(mod);
+                        }
+                    }
                 }
-                // Trigger the filter
-                filterInput.dispatchEvent(new Event("input"));
             }
+            return allMods.sort((a, b) => a.name.localeCompare(b.name));
+        }
 
-            function renderTablets() {
-                const grid = document.getElementById("tablet-grid");
-                const allMods = allData.reduce(
-                    (sum, tablet) => sum + (tablet.mod_count || 0),
-                    0,
-                );
-                document.getElementById("total-mods").textContent = allMods;
+        function extractSuffixesByTablet(data) {
+            const result = {};
+            for (const tablet of data) {
+                const suffixes = [];
+                for (const category of Object.values(tablet.suffixes)) {
+                    suffixes.push(...category.mods);
+                }
+                result[tablet.tablet_type] = suffixes;
+            }
+            return result;
+        }
 
-                grid.innerHTML = allData
-                    .map((tablet) => {
-                        const totalMods = tablet.mod_count || 0;
-                        const prefixCount = tablet.prefix_count || 0;
-                        const suffixCount = tablet.suffix_count || 0;
+        function analyzeSuffixes(allSuffixesByTablet) {
+            const allTabletTypes = Object.keys(allSuffixesByTablet);
+            const allSuffixNames = new Map();
+            for (const tabletType of allTabletTypes) {
+                for (const suffix of allSuffixesByTablet[tabletType]) {
+                    if (!allSuffixNames.has(suffix.name)) {
+                        allSuffixNames.set(suffix.name, suffix);
+                    }
+                }
+            }
+            const sharedSuffixNames = new Set();
+            const firstTablet = allTabletTypes[0];
+            for (const suffixName of allSuffixesByTablet[firstTablet].map(s => s.name)) {
+                let isShared = true;
+                for (const tabletType of allTabletTypes) {
+                    if (!allSuffixesByTablet[tabletType].some(s => s.name === suffixName)) {
+                        isShared = false;
+                        break;
+                    }
+                }
+                if (isShared) sharedSuffixNames.add(suffixName);
+            }
+            const sharedSuffixes = [];
+            const uniqueSuffixesByTablet = {};
+            for (const tabletType of allTabletTypes) uniqueSuffixesByTablet[tabletType] = [];
+            for (const suffixName of sharedSuffixNames) sharedSuffixes.push(allSuffixNames.get(suffixName));
+            for (const tabletType of allTabletTypes) {
+                for (const suffix of allSuffixesByTablet[tabletType]) {
+                    if (!sharedSuffixNames.has(suffix.name)) {
+                        uniqueSuffixesByTablet[tabletType].push(suffix);
+                    }
+                }
+                uniqueSuffixesByTablet[tabletType].sort((a, b) => a.name.localeCompare(b.name));
+            }
+            sharedSuffixes.sort((a, b) => a.name.localeCompare(b.name));
+            return { sharedSuffixes, uniqueSuffixesByTablet };
+        }
 
-                        const prefixes = tablet.prefixes || {};
-                        const suffixes = tablet.suffixes || {};
+        function renderPrefixList(prefixes) {
+            const container = document.getElementById('prefix-list');
+            if (!container) return;
+            container.innerHTML = prefixes.map((prefix, index) => `
+                <li class="modifier-item p-3 bg-gray-700/30 rounded-lg border border-gray-600/30">
+                    <div class="flex items-center space-x-3">
+                        <span class="text-sm font-bold text-amber-400 w-6 text-center">#${index + 1}</span>
+                        <span class="font-medium text-white flex-1">${formatModName(prefix.name)}</span>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-1 pl-9">${formatDescription(prefix.description)}</p>
+                </li>
+            `).join('');
+            document.getElementById('prefix-badge').textContent = prefixes.length;
+        }
 
-                        const renderModGroup = (
-                            group,
-                            groupData,
-                            type,
-                            tabletType,
-                            filterQuery = "",
-                        ) => {
-                            const mods = groupData.mods || groupData;
-                            const category = groupData.category || "General";
-                            const badge =
-                                type === "prefix"
-                                    ? '<span class="mod-type-badge prefix-badge">Prefix</span>'
-                                    : '<span class="mod-type-badge suffix-badge">Suffix</span>';
-                            const catBadge = `<span class="category-badge category-${category}">${category}</span>`;
+        function renderSharedSuffixList(suffixes) {
+            const container = document.getElementById('shared-suffix-list');
+            if (!container) return;
+            container.innerHTML = suffixes.map((suffix, index) => `
+                <li class="modifier-item p-3 bg-gray-700/30 rounded-lg border border-gray-600/30">
+                    <div class="flex items-center space-x-3">
+                        <span class="text-sm font-bold text-emerald-400 w-6 text-center">#${index + 1}</span>
+                        <span class="font-medium text-white flex-1">${formatModName(suffix.name)}</span>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-1 pl-9">${formatDescription(suffix.description)}</p>
+                </li>
+            `).join('');
+            document.getElementById('shared-badge').textContent = suffixes.length;
+            document.getElementById('shared-suffix-count').textContent = suffixes.length;
+        }
 
-                            const renderTextWithHighlight = (text) => {
-                                if (!filterQuery) return text;
-                                const regex = new RegExp(
-                                    `(${filterQuery})`,
-                                    "gi",
-                                );
-                                return text.replace(
-                                    regex,
-                                    '<span class="highlight">$1</span>',
-                                );
-                            };
-
-                            const getFavKey = (modName) =>
-                                `${tabletType}|${group}|${modName}`;
-                            const isFavorited = (modName) => {
-                                const fav = window.getFavorites
-                                    ? window.getFavorites()
-                                    : {};
-                                return fav[getFavKey(modName)];
-                            };
-
-                            return `
-                                <div class="mod-group">
-                                    <div class="mod-group-title">
-                                        ${badge}
-                                        ${catBadge}
-                                        ${group}
-                                    </div>
-                                    ${mods
-                                        .map((m) => {
-                                            const favKey = getFavKey(m.name);
-                                            const favorited = isFavorited(
-                                                m.name,
-                                            )
-                                                ? "favorited"
-                                                : "";
-                                            const rareCategories = [
-                                                "Boss",
-                                                "Abyss",
-                                                "Breach",
-                                                "Delirium",
-                                            ];
-                                            const isRare =
-                                                rareCategories.includes(
-                                                    category,
-                                                )
-                                                    ? "rare"
-                                                    : "";
-                                            return `
-                                    <div class="mod-item ${isRare}" data-mod-name="${m.name}" data-mod-desc="${m.description}" data-tablet="${tabletType}" data-group="${group}">
-                                        <strong class="copy-text" title="Click to copy">${renderTextWithHighlight(m.name)}</strong>
-                                        <span class="mod-description"> - ${renderTextWithHighlight(m.description)}</span>
-                                        <span class="fav-star ${favorited}" data-tooltip="Click to favorite" onclick="toggleFavoriteFromEvent(event, '${tabletType}', '${group}', '${m.name}')">★</span>
-                                    </div>
-                                `;
-                                        })
-                                        .join("")}
-                                </div>
-                            `;
-                        };
-
-                        const htmlPrefixes = Object.entries(prefixes)
-                            .map(([group, groupData]) =>
-                                renderModGroup(
-                                    group,
-                                    groupData,
-                                    "prefix",
-                                    tablet.tablet_type,
-                                ),
-                            )
-                            .join("");
-
-                        const htmlSuffixes = Object.entries(suffixes)
-                            .map(([group, groupData]) =>
-                                renderModGroup(
-                                    group,
-                                    groupData,
-                                    "suffix",
-                                    tablet.tablet_type,
-                                ),
-                            )
-                            .join("");
-
-                        return `
-                        <div class="tablet-card">
-                            <h3 data-tablet="${tablet.tablet_type}" class="">
-                                <a href="/tablet/${tablet.tablet_type}" style="color: inherit; text-decoration: none; display: flex; align-items: center; gap: 8px; flex: 1;">
-                                    ${tablet.tablet_type}
-                                </a>
-                                <span class="count-badge">${prefixCount} prefixes, ${suffixCount} suffixes</span>
-                                <button class="tooltip" data-tooltip="Copy all modifiers for ${tablet.tablet_type}" onclick="copyAllModifiersForTablet('${tablet.tablet_type}')" style="background: #2a2a2a; border: 1px solid #3a3a3a; color: #888; padding: 2px 6px; border-radius: 3px; cursor: pointer; font-size: 11px; margin-left: 8px;">Copy All</button>
-                            </h3>
-                            <div class="mod-list">
-                                <div class="mod-section">
-                                    <div class="mod-section-header">Prefixes (${prefixCount})</div>
-                                    ${htmlPrefixes || '<div class="mod-item empty-message">No prefixes</div>'}
-                                </div>
-                                <div class="mod-section">
-                                    <div class="mod-section-header">Suffixes (${suffixCount})</div>
-                                    ${htmlSuffixes || '<div class="mod-item empty-message">No suffixes</div>'}
-                                </div>
+        function renderUniqueSuffixList(uniqueSuffixesByTablet) {
+            const container = document.getElementById('unique-sections');
+            if (!container) return;
+            const tabletTypes = Object.keys(uniqueSuffixesByTablet).filter(tt => uniqueSuffixesByTablet[tt].length > 0).sort();
+            container.innerHTML = tabletTypes.map(tabletType => {
+                const info = tabletInfo[tabletType];
+                const suffixes = uniqueSuffixesByTablet[tabletType];
+                const sectionId = `tablet-${tabletType}`;
+                return `
+                    <section class="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden">
+                        <button onclick="toggleTabletSection('${tabletType}')" class="w-full p-4 text-left flex items-center justify-between hover:bg-gray-700/50 transition-colors">
+                            <div class="flex items-center space-x-3">
+                                <span class="text-2xl">${info.icon}</span>
+                                <h2 class="text-xl font-semibold text-white">${info.name}</h2>
+                                <span class="text-sm text-gray-400 bg-${info.color}-900/20 text-${info.color}-400 px-2 py-1 rounded-full">${suffixes.length} unique</span>
                             </div>
+                            <svg class="tablet-icon w-5 h-5 text-gray-400 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </button>
+                        <div id="${sectionId}-content" class="tablet-content p-4 pt-0 block">
+                            <ul class="space-y-2">
+                                ${suffixes.map((suffix, index) => `
+                                    <li class="modifier-item p-3 bg-gray-700/30 rounded-lg border border-gray-600/30">
+                                        <div class="flex items-center space-x-3">
+                                            <span class="text-sm font-bold text-${info.color}-400 w-6 text-center">#${index + 1}</span>
+                                            <span class="font-medium text-white flex-1">${formatModName(suffix.name)}</span>
+                                        </div>
+                                        <p class="text-xs text-gray-400 mt-1 pl-9">${formatDescription(suffix.description)}</p>
+                                    </li>
+                                `).join('')}
+                            </ul>
                         </div>
-                    `;
-                    })
-                    .join("");
+                    </section>
+                `;
+            }).join('');
+        }
 
-                // Add click handlers to the card itself, not the h3 (since h3 has a link)
-                grid.querySelectorAll(".tablet-card").forEach((card) => {
-                    const h3 = card.querySelector("h3");
-                    const modList = card.querySelector(".mod-list");
-
-                    // Click on card (not on the link) toggles expand
-                    card.addEventListener("click", (e) => {
-                        if (
-                            e.target.tagName !== "A" &&
-                            !e.target.closest("a")
-                        ) {
-                            h3.classList.toggle("expanded");
-                            modList.classList.toggle("expanded");
-                        }
-                    });
+        async function fetchModifiers() {
+            try {
+                const leagueResponse = await fetch('http://localhost:8001/api/league/info');
+                const leagueData = await leagueResponse.json();
+                document.getElementById('current-league').textContent = leagueData.current_league || 'Unknown';
+                const modResponse = await fetch('http://localhost:8001/api/reports/mod-reference');
+                const modData = await modResponse.json();
+                document.getElementById('tablet-count').textContent = modData.length;
+                const allPrefixes = extractAllModifiers(modData, 'prefixes');
+                document.getElementById('prefix-count').textContent = allPrefixes.length;
+                renderPrefixList(allPrefixes);
+                const allSuffixesByTablet = extractSuffixesByTablet(modData);
+                const { sharedSuffixes, uniqueSuffixesByTablet } = analyzeSuffixes(allSuffixesByTablet);
+                renderSharedSuffixList(sharedSuffixes);
+                renderUniqueSuffixList(uniqueSuffixesByTablet);
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('current-league').textContent = 'API Error';
+                ['prefix-list', 'shared-suffix-list'].forEach(id => {
+                    document.getElementById(id).innerHTML = '<li class="text-red-400 text-center py-4">Failed to load. Check backend at http://localhost:8001</li>';
                 });
-
-                // Add filter functionality
-                const filterInput = document.getElementById("filter-input");
-                filterInput.addEventListener("input", (e) => {
-                    const query = e.target.value.toLowerCase();
-                    let hasAnyVisible = false;
-
-                    grid.querySelectorAll(".mod-item").forEach((item) => {
-                        const visible = item.textContent
-                            .toLowerCase()
-                            .includes(query);
-                        if (visible) hasAnyVisible = true;
-                        item.style.display = visible ? "block" : "none";
-                    });
-                    // Hide mod-groups that have no visible items
-                    grid.querySelectorAll(".mod-group").forEach((group) => {
-                        const items = group.querySelectorAll(".mod-item");
-                        const hasVisible = Array.from(items).some(
-                            (item) => item.style.display !== "none",
-                        );
-                        group.style.display = hasVisible ? "block" : "none";
-                    });
-
-                    // Show empty state if no results
-                    updateEmptyState();
-                });
-
-                function updateEmptyState() {
-                    const allItems = grid.querySelectorAll(".mod-item");
-                    const hasVisible = Array.from(allItems).some(
-                        (item) => item.style.display !== "none",
-                    );
-
-                    const emptyState = document.getElementById("empty-state");
-                    if (!hasVisible) {
-                        if (!emptyState) {
-                            const emptyHtml = document.createElement("div");
-                            emptyHtml.id = "empty-state";
-                            emptyHtml.className = "empty-state";
-                            emptyHtml.innerHTML = `
-                                <div class="empty-state-icon">🔍</div>
-                                <div>No modifiers match your filter</div>
-                                <div style="margin-top: 8px; font-size: 11px; color: #555;">Try a different search term or clear your filters</div>
-                            `;
-                            grid.appendChild(emptyHtml);
-                        }
-                    } else {
-                        if (emptyState) emptyState.remove();
-                    }
-                }
-
-                // Add expand-all/collapse-all functionality
-                document
-                    .getElementById("expand-all")
-                    .addEventListener("click", () => {
-                        grid.querySelectorAll(".tablet-card h3").forEach(
-                            (h3) => {
-                                h3.classList.add("expanded");
-                                const modList = h3.nextElementSibling;
-                                if (modList) modList.classList.add("expanded");
-                            },
-                        );
-                    });
-
-                document
-                    .getElementById("collapse-all")
-                    .addEventListener("click", () => {
-                        grid.querySelectorAll(".tablet-card h3").forEach(
-                            (h3) => {
-                                h3.classList.remove("expanded");
-                                const modList = h3.nextElementSibling;
-                                if (modList)
-                                    modList.classList.remove("expanded");
-                            },
-                        );
-                    });
+                document.getElementById('unique-sections').innerHTML = '<p class="text-red-400 text-center py-4">Failed to load. Check backend at http://localhost:8001</p>';
             }
+        }
 
-            // Global search functionality
-            let globalSearchTimeout;
-            const globalFilterInput = document.getElementById(
-                "global-filter-input",
-            );
-            const globalFilterResults = document.getElementById(
-                "global-filter-results",
-            );
-
-            globalFilterInput.addEventListener("input", (e) => {
-                clearTimeout(globalSearchTimeout);
-                const query = e.target.value.toLowerCase();
-
-                if (query.length < 2) {
-                    globalFilterResults.textContent = "";
-                    // Reset all tablets to visible
-                    grid.querySelectorAll(".tablet-card").forEach((card) => {
-                        card.style.display = "block";
-                    });
-                    return;
-                }
-
-                globalSearchTimeout = setTimeout(() => {
-                    let matchCount = 0;
-                    let anyVisibleTablet = false;
-                    grid.querySelectorAll(".tablet-card").forEach((card) => {
-                        const h3 = card.querySelector("h3");
-                        const tabletType = h3.textContent.toLowerCase();
-                        const modList = card.querySelector(".mod-list");
-
-                        if (modList) {
-                            const items = modList.querySelectorAll(".mod-item");
-                            let hasMatch = false;
-                            items.forEach((item) => {
-                                const text = item.textContent.toLowerCase();
-                                if (text.includes(query)) {
-                                    hasMatch = true;
-                                    matchCount++;
-                                }
-                            });
-                            card.style.display = hasMatch ? "block" : "none";
-                            if (hasMatch) anyVisibleTablet = true;
-                        }
-                    });
-
-                    if (matchCount > 0) {
-                        globalFilterResults.textContent = `Found ${matchCount} matches`;
-                    } else {
-                        globalFilterResults.textContent = "No matches found";
-                    }
-
-                    // Show empty state if no tablets match
-                    updateGlobalEmptyState(anyVisibleTablet, query);
-                }, 300);
-
-                function updateGlobalEmptyState(hasVisible, query) {
-                    const globalEmptyState =
-                        document.getElementById("global-empty-state");
-                    if (!hasVisible && query.length >= 2) {
-                        if (!globalEmptyState) {
-                            const emptyHtml = document.createElement("div");
-                            emptyHtml.id = "global-empty-state";
-                            emptyHtml.className = "empty-state";
-                            emptyHtml.style.gridColumn = "1 / -1";
-                            emptyHtml.innerHTML = `
-                                <div class="empty-state-icon">🔍</div>
-                                <div>No modifiers match "${query}"</div>
-                                <div style="margin-top: 8px; font-size: 11px; color: #555;">Try a different search term</div>
-                            `;
-                            grid.prepend(emptyHtml);
-                        }
-                    } else {
-                        if (globalEmptyState) globalEmptyState.remove();
-                    }
-                }
-            });
-
-            // Populate category filter
-            const categoryFilter = document.getElementById("category-filter");
-            const allCategories = new Set(["All Categories"]);
-
-            function populateCategories() {
-                allData.forEach((tablet) => {
-                    Object.values(tablet.prefixes || {}).forEach((g) => {
-                        if (g.category) allCategories.add(g.category);
-                    });
-                    Object.values(tablet.suffixes || {}).forEach((g) => {
-                        if (g.category) allCategories.add(g.category);
-                    });
-                });
-
-                const sortedCategories = Array.from(allCategories).sort();
-                categoryFilter.innerHTML = sortedCategories
-                    .map((cat) => `<option value="${cat}">${cat}</option>`)
-                    .join("");
-            }
-
-            // Category filter functionality
-            categoryFilter.addEventListener("change", (e) => {
-                const selectedCategory = e.target.value;
-                grid.querySelectorAll(".mod-group").forEach((group) => {
-                    const categoryBadge =
-                        group.querySelector(".category-badge");
-                    if (!categoryBadge) return;
-
-                    const groupCategory = categoryBadge.textContent;
-                    const shouldShow =
-                        selectedCategory === "" ||
-                        selectedCategory === groupCategory;
-                    group.style.display = shouldShow ? "block" : "none";
-                });
-            });
-
-            loadData().then(populateCategories);
-
-            // Keyboard shortcuts
-            document.addEventListener("keydown", (e) => {
-                if (
-                    e.target.tagName !== "INPUT" &&
-                    e.target.tagName !== "SELECT" &&
-                    e.key === "/"
-                ) {
-                    e.preventDefault();
-                    document.getElementById("global-filter-input").focus();
-                }
-                if (e.key === "Escape") {
-                    document.getElementById("filter-input").value = "";
-                    document.getElementById("global-filter-input").value = "";
-                    document.getElementById("category-filter").value = "";
-                    document
-                        .getElementById("filter-input")
-                        .dispatchEvent(new Event("input"));
-                    document
-                        .getElementById("global-filter-input")
-                        .dispatchEvent(new Event("input"));
-                    document
-                        .getElementById("category-filter")
-                        .dispatchEvent(new Event("change"));
-                    window.location.hash = "";
-                }
-            });
-
-            // Copy to clipboard functionality
-            function showCopiedNotification(message = "Copied to clipboard!") {
-                let notification = document.getElementById(
-                    "copied-notification",
-                );
-                if (!notification) {
-                    notification = document.createElement("div");
-                    notification.id = "copied-notification";
-                    notification.className = "copied-notification";
-                    notification.textContent = message;
-                    document.body.appendChild(notification);
-                    setTimeout(() => notification.remove(), 2000);
-                } else {
-                    notification.textContent = message;
-                    clearTimeout(notification._timer);
-                    notification._timer = setTimeout(
-                        () => notification.remove(),
-                        2000,
-                    );
-                }
-            }
-
-            document.addEventListener("click", (e) => {
-                const copyText = e.target.closest(".copy-text");
-                if (copyText) {
-                    const modItem = copyText.closest(".mod-item");
-                    const modName = modItem.dataset.modName;
-                    const modDesc = modItem.dataset.modDesc;
-                    const textToCopy = `${modName} - ${modDesc}`;
-
-                    navigator.clipboard.writeText(textToCopy).then(() => {
-                        showCopiedNotification();
-                    });
-                }
-            });
-
-            // Favorites functionality
-            function toggleFavoriteFromEvent(
-                event,
-                tabletType,
-                group,
-                modName,
-            ) {
-                event.stopPropagation();
-                window.toggleFavorite(tabletType, group, modName);
-                // Update star icon state
-                const star = event.target;
-                star.classList.toggle("favorited");
-            }
-
-            // Copy all modifiers for a tablet type
-            function copyAllModifiersForTablet(tabletType) {
-                const tablet = allData.find(
-                    (t) => t.tablet_type === tabletType,
-                );
-                if (!tablet) return;
-
-                let text = `=== ${tabletType.toUpperCase()} TABLET MODIFIERS ===\n\n`;
-
-                // Add prefixes
-                if (tablet.prefixes) {
-                    text += "PREFIXES:\n";
-                    for (const [group, groupData] of Object.entries(
-                        tablet.prefixes,
-                    )) {
-                        text += `  ${group}:\n`;
-                        const mods = groupData.mods || groupData;
-                        mods.forEach((m) => {
-                            text += `    - ${m.name}: ${m.description}\n`;
-                        });
-                        text += "\n";
-                    }
-                }
-
-                // Add suffixes
-                if (tablet.suffixes) {
-                    text += "SUFFIXES:\n";
-                    for (const [group, groupData] of Object.entries(
-                        tablet.suffixes,
-                    )) {
-                        text += `  ${group}:\n`;
-                        const mods = groupData.mods || groupData;
-                        mods.forEach((m) => {
-                            text += `    - ${m.name}: ${m.description}\n`;
-                        });
-                        text += "\n";
-                    }
-                }
-
-                navigator.clipboard.writeText(text).then(() => {
-                    showCopiedNotification("All modifiers copied!");
-                });
-            }
-
-            // Favorites functions - define them directly on window
-            if (!window.toggleFavorite) {
-                window.toggleFavorite = function (tabletType, group, modName) {
-                    let favorites = JSON.parse(
-                        localStorage.getItem("tabletFavorites") || "{}",
-                    );
-                    const key = `${tabletType}|${group}|${modName}`;
-                    if (favorites[key]) {
-                        delete favorites[key];
-                    } else {
-                        favorites[key] = true;
-                    }
-                    localStorage.setItem(
-                        "tabletFavorites",
-                        JSON.stringify(favorites),
-                    );
-                };
-            }
-            if (!window.getFavorites) {
-                window.getFavorites = function () {
-                    return JSON.parse(
-                        localStorage.getItem("tabletFavorites") || "{}",
-                    );
-                };
-            }
-
-            // Global search functionality - synced with per-page search
-            const globalSearchInput = document.getElementById("global-search");
-            if (globalSearchInput) {
-                globalSearchInput.addEventListener("input", (e) => {
-                    const query = e.target.value.toLowerCase();
-                    if (query.length < 2) {
-                        // Reset all tablets
-                        document
-                            .querySelectorAll(".tablet-card")
-                            .forEach((card) => {
-                                card.style.display = "";
-                            });
-                        // Also reset per-page filter if it exists
-                        const perPageFilter = document.getElementById(
-                            "global-filter-input",
-                        );
-                        if (perPageFilter) perPageFilter.value = "";
-                        return;
-                    }
-
-                    // Search through all tablet cards
-                    document
-                        .querySelectorAll(".tablet-card")
-                        .forEach((card) => {
-                            const text = card.textContent.toLowerCase();
-                            card.style.display = text.includes(query)
-                                ? ""
-                                : "none";
-                        });
-                });
-
-                // Keyboard shortcut: Ctrl+K or / to focus search
-                document.addEventListener("keydown", (e) => {
-                    if ((e.ctrlKey && e.key === "k") || e.key === "/") {
-                        if (
-                            e.target.tagName !== "INPUT" &&
-                            e.target.tagName !== "SELECT"
-                        ) {
-                            e.preventDefault();
-                            globalSearchInput.focus();
-                        }
-                    }
-                    if (e.key === "Escape") {
-                        globalSearchInput.value = "";
-                        globalSearchInput.dispatchEvent(new Event("input"));
-                        globalSearchInput.blur();
-                    }
-                });
-            }
-        </script>
-    <script src="/js/shared.js"></script>
-    </body>
+        fetchModifiers();
+        setInterval(fetchModifiers, 5 * 60 * 1000);
+    </script>
+</body>
 </html>
