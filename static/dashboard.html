@@ -309,6 +309,7 @@
                 font-size: 11px;
             }
         </style>
+        <link rel="stylesheet" href="/css/theme.css" />
     </head>
     <body>
         <div id="refresh-bar"></div>
@@ -734,7 +735,8 @@
                         (r) => `<td class="mod">${strip(r.mod_family)}</td>`,
                         (r) => `<td class="type">${r.tablet_type}</td>`,
                         (r) => `<td class="num">${r.n}</td>`,
-                        (r) => `<td class="price">${fmt(r.avg_div)}</td>`,
+                        (r) =>
+                            `<td class="price ${ColorCoding.getPriceClass(r.avg_div)}">${fmt(r.avg_div)}</td>`,
                         (r) =>
                             `<td class="range">${fmt(r.min_div, 0)}–${fmt(r.max_div, 0)}</td>`,
                     ]);
@@ -744,14 +746,16 @@
                         (r) => `<td class="mod">${strip(r.mod_family)}</td>`,
                         (r) => `<td class="type">${r.tablet_type}</td>`,
                         (r) => `<td class="num">${r.n}</td>`,
-                        (r) => `<td class="price">${fmt(r.avg_div)}</td>`,
+                        (r) =>
+                            `<td class="price ${ColorCoding.getPriceClass(r.avg_div)}">${fmt(r.avg_div)}</td>`,
                         (r) =>
                             `<td class="range">${fmt(r.min_div, 0)}–${fmt(r.max_div, 0)}</td>`,
                     ]);
 
                     renderTable("tbl-price", data.affix_price, [
                         (r) => `<td class="mod">${strip(r.mod_family)}</td>`,
-                        (r) => `<td class="price">${fmt(r.avg_div)}</td>`,
+                        (r) =>
+                            `<td class="price ${ColorCoding.getPriceClass(r.avg_div)}">${fmt(r.avg_div)}</td>`,
                         (r) =>
                             `<td class="range">${fmt(r.min_div, 0)}–${fmt(r.max_div, 0)}</td>`,
                         (r) => `<td class="num">${r.n}</td>`,
@@ -766,9 +770,9 @@
                         (r) => `<td class="mod">${strip(r.mod_family)}</td>`,
                         (r) => `<td class="type">${r.tablet_type}</td>`,
                         (r) =>
-                            `<td class="pct"><div class="pct-bar-wrap"><span>${r.pct}%</span><div class="pct-bar" style="width:${Math.round((r.pct / maxPct) * 60)}px"></div></div></td>`,
+                            `<td class="pct ${ColorCoding.getPercentClass(r.pct)}"><div class="pct-bar-wrap"><span>${r.pct}%</span><div class="pct-bar" style="width:${Math.round((r.pct / maxPct) * 60)}px"></div></div></td>`,
                         (r) =>
-                            `<td class="price">${fmt(r.avg_div)} <span class="pct-change ${r.pct >= 0 ? "positive" : "negative"}">${r.pct >= 0 ? "↑" : "↓"} ${Math.abs(r.pct)}%</span></td>`,
+                            `<td class="price ${ColorCoding.getPriceClass(r.avg_div)}">${fmt(r.avg_div)} <span class="pct-change ${r.pct >= 0 ? "positive" : "negative"}">${r.pct >= 0 ? "↑" : "↓"} ${Math.abs(r.pct)}%</span></td>`,
                     ]);
 
                     // Calculate and populate Market Statistics & Insights
@@ -1042,17 +1046,18 @@
                             `<td class="pair">${strip(r.mod_a)}<br><span>+ ${strip(r.mod_b)}</span></td>`,
                         (r) => `<td class="type">${r.tablet_type}</td>`,
                         (r) => `<td class="num">${r.n}</td>`,
-                        (r) => `<td class="price">${fmt(r.avg_div)}</td>`,
+                        (r) =>
+                            `<td class="price ${ColorCoding.getPriceClass(r.avg_div)}">${fmt(r.avg_div)}</td>`,
                     ]);
 
                     renderTable("tbl-buy", data.buy_signals || [], [
                         (r) => `<td class="type">${r.tablet_type}</td>`,
                         (r) =>
-                            `<td class="price">${fmt(r.magic_buy_price_div)}</td>`,
+                            `<td class="price ${ColorCoding.getPriceClass(r.magic_buy_price_div)}">${fmt(r.magic_buy_price_div)}</td>`,
                         (r) =>
-                            `<td class="price">${fmt(r.rare_median_price_div)}</td>`,
+                            `<td class="price ${ColorCoding.getPriceClass(r.rare_median_price_div)}">${fmt(r.rare_median_price_div)}</td>`,
                         (r) =>
-                            `<td class="price">${fmt(r.expected_profit_div)}</td>`,
+                            `<td class="price ${ColorCoding.getProfitClass(r.expected_profit_div)}">${fmt(r.expected_profit_div)}</td>`,
                         (r) =>
                             `<td class="num">${fmt(r.junk_rate * 100, 0)}%</td>`,
                     ]);

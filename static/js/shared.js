@@ -532,159 +532,183 @@ if (document.readyState === "loading") {
  * These are enhanced chart options with better interactivity and styling
  */
 const ChartDefaults = {
-    // Common chart options
-    getCommonOptions(title = '') {
-        return {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'top',
-                    labels: {
-                        color: function(context) {
-                            // Use CSS variable for text color
-                            return getComputedStyle(document.documentElement).getPropertyValue('--text-secondary') || '#888';
-                        },
-                        boxWidth: 12,
-                        padding: 15,
-                        usePointStyle: true
-                    }
-                },
-                tooltip: {
-                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                    titleColor: '#c8a96e',
-                    bodyColor: '#c9b99a',
-                    borderColor: '#a08050',
-                    borderWidth: 1,
-                    padding: 10,
-                    displayColors: true,
-                    callbacks: {
-                        label: function(context) {
-                            let label = context.dataset.label || '';
-                            if (label) {
-                                label += ': ';
-                            }
-                            if (context.parsed.y !== null) {
-                                label += context.parsed.y.toFixed(2);
-                            }
-                            return label;
-                        }
-                    }
-                },
-                title: {
-                    display: title ? true : false,
-                    text: title,
-                    color: function() {
-                        return getComputedStyle(document.documentElement).getPropertyValue('--text-primary') || '#c9b99a';
-                    },
-                    font: {
-                        size: 14
-                    }
-                }
+  // Common chart options
+  getCommonOptions(title = "") {
+    return {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: "top",
+          labels: {
+            color: function (context) {
+              // Use CSS variable for text color
+              return (
+                getComputedStyle(document.documentElement).getPropertyValue(
+                  "--text-secondary",
+                ) || "#888"
+              );
             },
-            scales: {
-                x: {
-                    ticks: {
-                        color: function() {
-                            return getComputedStyle(document.documentElement).getPropertyValue('--text-secondary') || '#888';
-                        }
-                    },
-                    grid: {
-                        color: function() {
-                            return getComputedStyle(document.documentElement).getPropertyValue('--border-subtle') || '#1e1e1e';
-                        }
-                    }
-                },
-                y: {
-                    ticks: {
-                        color: function() {
-                            return getComputedStyle(document.documentElement).getPropertyValue('--text-secondary') || '#888';
-                        }
-                    },
-                    grid: {
-                        color: function() {
-                            return getComputedStyle(document.documentElement).getPropertyValue('--border-subtle') || '#1e1e1e';
-                        }
-                    }
-                }
+            boxWidth: 12,
+            padding: 15,
+            usePointStyle: true,
+          },
+        },
+        tooltip: {
+          backgroundColor: "rgba(0, 0, 0, 0.8)",
+          titleColor: "#c8a96e",
+          bodyColor: "#c9b99a",
+          borderColor: "#a08050",
+          borderWidth: 1,
+          padding: 10,
+          displayColors: true,
+          callbacks: {
+            label: function (context) {
+              let label = context.dataset.label || "";
+              if (label) {
+                label += ": ";
+              }
+              if (context.parsed.y !== null) {
+                label += context.parsed.y.toFixed(2);
+              }
+              return label;
             },
-            onClick: (e, elements) => {
-                // Handle chart clicks
-                if (elements.length > 0) {
-                    const element = elements[0];
-                    const dataset = e.chart.data.datasets[element.datasetIndex];
-                    const label = dataset.label || '';
-                    const value = dataset.data[element.index];
-                    console.log(`Clicked: ${label} - ${value}`);
-                }
-            }
-        };
-    },
-    
-    // Line chart specific options
-    getLineOptions(title = '') {
-        const common = this.getCommonOptions(title);
-        return {
-            ...common,
-            interaction: {
-                mode: 'index',
-                intersect: false
+          },
+        },
+        title: {
+          display: title ? true : false,
+          text: title,
+          color: function () {
+            return (
+              getComputedStyle(document.documentElement).getPropertyValue(
+                "--text-primary",
+              ) || "#c9b99a"
+            );
+          },
+          font: {
+            size: 14,
+          },
+        },
+      },
+      scales: {
+        x: {
+          ticks: {
+            color: function () {
+              return (
+                getComputedStyle(document.documentElement).getPropertyValue(
+                  "--text-secondary",
+                ) || "#888"
+              );
             },
-            plugins: {
-                ...common.plugins,
-                legend: {
-                    ...common.plugins.legend,
-                    position: 'top'
-                }
+          },
+          grid: {
+            color: function () {
+              return (
+                getComputedStyle(document.documentElement).getPropertyValue(
+                  "--border-subtle",
+                ) || "#1e1e1e"
+              );
             },
-            scales: {
-                ...common.scales,
-                x: {
-                    ...common.scales.x
-                },
-                y: {
-                    ...common.scales.y,
-                    beginAtZero: false
-                }
-            }
-        };
-    },
-    
-    // Bar chart specific options
-    getBarOptions(title = '') {
-        const common = this.getCommonOptions(title);
-        return {
-            ...common,
-            interaction: {
-                mode: 'index',
-                intersect: false
+          },
+        },
+        y: {
+          ticks: {
+            color: function () {
+              return (
+                getComputedStyle(document.documentElement).getPropertyValue(
+                  "--text-secondary",
+                ) || "#888"
+              );
             },
-            plugins: {
-                ...common.plugins,
-                legend: {
-                    ...common.plugins.legend,
-                    position: 'top'
-                }
+          },
+          grid: {
+            color: function () {
+              return (
+                getComputedStyle(document.documentElement).getPropertyValue(
+                  "--border-subtle",
+                ) || "#1e1e1e"
+              );
             },
-            scales: {
-                ...common.scales,
-                x: {
-                    ...common.scales.x,
-                    stacked: false
-                },
-                y: {
-                    ...common.scales.y,
-                    beginAtZero: true
-                }
-            }
-        };
-    },
-    
-    // Get tablet color with alpha for chart backgrounds
-    getTabletColorWithAlpha(tabletType, alpha = 'aa') {
-        const color = TABLET_COLORS[tabletType] || COLORS[0];
-        return color + alpha;
-    }
+          },
+        },
+      },
+      onClick: (e, elements) => {
+        // Handle chart clicks
+        if (elements.length > 0) {
+          const element = elements[0];
+          const dataset = e.chart.data.datasets[element.datasetIndex];
+          const label = dataset.label || "";
+          const value = dataset.data[element.index];
+          console.log(`Clicked: ${label} - ${value}`);
+        }
+      },
+    };
+  },
+
+  // Line chart specific options
+  getLineOptions(title = "") {
+    const common = this.getCommonOptions(title);
+    return {
+      ...common,
+      interaction: {
+        mode: "index",
+        intersect: false,
+      },
+      plugins: {
+        ...common.plugins,
+        legend: {
+          ...common.plugins.legend,
+          position: "top",
+        },
+      },
+      scales: {
+        ...common.scales,
+        x: {
+          ...common.scales.x,
+        },
+        y: {
+          ...common.scales.y,
+          beginAtZero: false,
+        },
+      },
+    };
+  },
+
+  // Bar chart specific options
+  getBarOptions(title = "") {
+    const common = this.getCommonOptions(title);
+    return {
+      ...common,
+      interaction: {
+        mode: "index",
+        intersect: false,
+      },
+      plugins: {
+        ...common.plugins,
+        legend: {
+          ...common.plugins.legend,
+          position: "top",
+        },
+      },
+      scales: {
+        ...common.scales,
+        x: {
+          ...common.scales.x,
+          stacked: false,
+        },
+        y: {
+          ...common.scales.y,
+          beginAtZero: true,
+        },
+      },
+    };
+  },
+
+  // Get tablet color with alpha for chart backgrounds
+  getTabletColorWithAlpha(tabletType, alpha = "aa") {
+    const color = TABLET_COLORS[tabletType] || COLORS[0];
+    return color + alpha;
+  },
 };
 
 /**
@@ -692,15 +716,15 @@ const ChartDefaults = {
  * @param {Chart} chart - The Chart.js chart instance
  * @param {string} filename - The filename for the image
  */
-function exportChartAsImage(chart, filename = 'chart.png') {
-    if (!chart) return;
-    
-    // Use Chart.js toImage method
-    const imageUrl = chart.toBase64Image();
-    const link = document.createElement('a');
-    link.href = imageUrl;
-    link.download = filename;
-    link.click();
+function exportChartAsImage(chart, filename = "chart.png") {
+  if (!chart) return;
+
+  // Use Chart.js toImage method
+  const imageUrl = chart.toBase64Image();
+  const link = document.createElement("a");
+  link.href = imageUrl;
+  link.download = filename;
+  link.click();
 }
 
 /**
@@ -709,21 +733,21 @@ function exportChartAsImage(chart, filename = 'chart.png') {
  * @param {string} chartTitle - The title for the chart
  * @returns {HTMLElement} The container element
  */
-function createChartContainer(canvasId, chartTitle = '') {
-    const container = document.createElement('div');
-    container.className = 'chart-container';
-    container.style.position = 'relative';
-    
-    const canvas = document.createElement('canvas');
-    canvas.id = canvasId;
-    container.appendChild(canvas);
-    
-    // Add export button
-    const exportButton = document.createElement('button');
-    exportButton.className = 'chart-export-btn';
-    exportButton.innerHTML = '📥';
-    exportButton.title = 'Export chart as PNG';
-    exportButton.style.cssText = `
+function createChartContainer(canvasId, chartTitle = "") {
+  const container = document.createElement("div");
+  container.className = "chart-container";
+  container.style.position = "relative";
+
+  const canvas = document.createElement("canvas");
+  canvas.id = canvasId;
+  container.appendChild(canvas);
+
+  // Add export button
+  const exportButton = document.createElement("button");
+  exportButton.className = "chart-export-btn";
+  exportButton.innerHTML = "📥";
+  exportButton.title = "Export chart as PNG";
+  exportButton.style.cssText = `
         position: absolute;
         top: 8px;
         right: 8px;
@@ -736,16 +760,19 @@ function createChartContainer(canvasId, chartTitle = '') {
         cursor: pointer;
         z-index: 10;
     `;
-    exportButton.onclick = () => {
-        const chart = Chart.getChart(canvasId);
-        if (chart) {
-            exportChartAsImage(chart, `${chartTitle.replace(/\s+/g, '-').toLowerCase()}.png`);
-        }
-    };
-    
-    container.appendChild(exportButton);
-    
-    return container;
+  exportButton.onclick = () => {
+    const chart = Chart.getChart(canvasId);
+    if (chart) {
+      exportChartAsImage(
+        chart,
+        `${chartTitle.replace(/\s+/g, "-").toLowerCase()}.png`,
+      );
+    }
+  };
+
+  container.appendChild(exportButton);
+
+  return container;
 }
 
 /**
@@ -753,8 +780,156 @@ function createChartContainer(canvasId, chartTitle = '') {
  * Returns colors that work with both dark and light themes
  */
 const ThemeColors = {
-    getTextColor: () => getComputedStyle(document.documentElement).getPropertyValue('--text-primary') || '#c9b99a',
-    getTextSecondary: () => getComputedStyle(document.documentElement).getPropertyValue('--text-secondary') || '#888',
-    getGridColor: () => getComputedStyle(document.documentElement).getPropertyValue('--border-subtle') || '#1e1e1e',
-    getBackgroundColor: () => getComputedStyle(document.documentElement).getPropertyValue('--bg-primary') || '#0e0e0e'
+  getTextColor: () =>
+    getComputedStyle(document.documentElement).getPropertyValue(
+      "--text-primary",
+    ) || "#c9b99a",
+  getTextSecondary: () =>
+    getComputedStyle(document.documentElement).getPropertyValue(
+      "--text-secondary",
+    ) || "#888",
+  getGridColor: () =>
+    getComputedStyle(document.documentElement).getPropertyValue(
+      "--border-subtle",
+    ) || "#1e1e1e",
+  getBackgroundColor: () =>
+    getComputedStyle(document.documentElement).getPropertyValue(
+      "--bg-primary",
+    ) || "#0e0e0e",
 };
+
+/**
+ * Color Coding Utilities
+ * Adds visual indicators to values based on thresholds
+ */
+const ColorCoding = {
+  /**
+   * Get color class for lift values (higher = better)
+   * @param {number} lift - Lift value
+   * @returns {string} CSS class name
+   */
+  getLiftClass(lift) {
+    if (lift == null || lift === 0) return "";
+    if (lift >= 2.0) return "lift-excellent";
+    if (lift >= 1.5) return "lift-good";
+    if (lift >= 1.0) return "lift-average";
+    if (lift >= 0.5) return "lift-poor";
+    return "lift-bad";
+  },
+
+  /**
+   * Get color class for price values (context dependent)
+   * @param {number} price - Price in divine
+   * @param {number} avg - Average price for comparison (optional)
+   * @returns {string} CSS class name
+   */
+  getPriceClass(price, avg = null) {
+    if (price == null || price === 0) return "price-low";
+    if (avg != null) {
+      if (price > avg * 1.5) return "price-high";
+      if (price > avg * 0.8) return "price-medium";
+      return "price-low";
+    }
+    // Without comparison, use absolute thresholds
+    if (price >= 10) return "price-high";
+    if (price >= 1) return "price-medium";
+    return "price-low";
+  },
+
+  /**
+   * Get color class for profit values
+   * @param {number} profit - Profit in divine
+   * @returns {string} CSS class name
+   */
+  getProfitClass(profit) {
+    if (profit == null) return "";
+    if (profit > 1) return "profit-positive";
+    if (profit > 0) return "profit-positive";
+    if (profit === 0) return "profit-neutral";
+    return "profit-negative";
+  },
+
+  /**
+   * Get color class for percentage values
+   * @param {number} pct - Percentage (0-100)
+   * @returns {string} CSS class name
+   */
+  getPercentClass(pct) {
+    if (pct == null) return "";
+    if (pct >= 75) return "text-success";
+    if (pct >= 50) return "text-gold";
+    if (pct >= 25) return "text-warning";
+    return "text-error";
+  },
+
+  /**
+   * Get buy signal badge class
+   * @param {number} isBuySignal - Boolean
+   * @param {number} confidence - Confidence score (0-1)
+   * @returns {string} CSS class name
+   */
+  getBuySignalClass(isBuySignal, confidence) {
+    if (!isBuySignal) return "buy-avoid";
+    if (confidence >= 0.8) return "buy-strong";
+    if (confidence >= 0.6) return "buy-good";
+    return "buy-weak";
+  },
+
+  /**
+   * Get tablet type color class
+   * @param {string} tabletType - Tablet type key
+   * @returns {string} CSS class name
+   */
+  getTabletClass(tabletType) {
+    if (!tabletType) return "";
+    return `tablet-${tabletType.toLowerCase()}`;
+  },
+
+  /**
+   * Get colored price span
+   * @param {number} value - Price value
+   * @param {number} avg - Average for comparison (optional)
+   * @returns {string} HTML span with color class
+   */
+  priceSpan(value, avg = null) {
+    const cls = this.getPriceClass(value, avg);
+    return `<span class="${cls}">${fmt(value)} div</span>`;
+  },
+
+  /**
+   * Get colored lift span
+   * @param {number} lift - Lift value
+   * @returns {string} HTML span with color class
+   */
+  liftSpan(lift) {
+    const cls = this.getLiftClass(lift);
+    return `<span class="${cls}">${fmt(lift)}</span>`;
+  },
+
+  /**
+   * Get colored profit span
+   * @param {number} profit - Profit value
+   * @returns {string} HTML span with color class
+   */
+  profitSpan(profit) {
+    const cls = this.getProfitClass(profit);
+    const sign = profit > 0 ? "+" : "";
+    return `<span class="${cls}">${sign}${fmt(profit)} div</span>`;
+  },
+
+  /**
+   * Get colored percentage span
+   * @param {number} pct - Percentage
+   * @returns {string} HTML span with color class
+   */
+  percentSpan(pct) {
+    const cls = this.getPercentClass(pct);
+    return `<span class="${cls}">${fmt(pct, 1)}%</span>`;
+  },
+};
+
+/**
+ * Initialize color coding on page load
+ * This makes the ColorCoding utilities available globally
+ */
+window.ColorCoding = ColorCoding;

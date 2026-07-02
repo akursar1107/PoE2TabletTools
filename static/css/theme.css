@@ -1,0 +1,271 @@
+/**
+ * PoE2 Tablet Market Intelligence - Theme Colors
+ * Shared CSS variables for consistent styling across all pages
+ *
+ * Usage: Add <link rel="stylesheet" href="/css/theme.css" /> to each HTML file
+ */
+
+:root {
+    /* Primary colors */
+    --color-bg-dark: #0e0e0e;
+    --color-bg-darker: #1a1a1a;
+    --color-bg-card: #141414;
+    --color-bg-input: #2a2a2a;
+
+    /* Text colors */
+    --color-text-primary: #c9b99a;
+    --color-text-secondary: #888;
+    --color-text-muted: #666;
+    --color-text-gold: #a08050;
+    --color-text-success: #5a9e5a;
+    --color-text-warning: #c8a96e;
+    --color-text-error: #ff6b6b;
+
+    /* Border colors */
+    --color-border: #2a2a2a;
+    --color-border-light: #3a3a3a;
+
+    /* Accent colors */
+    --color-accent: #a08050;
+    --color-accent-light: #c8a96e;
+
+    /* Tablet type colors */
+    --color-ritual: #c8a96e;
+    --color-breach: #cc66cc;
+    --color-delirium: #66cc99;
+    --color-expedition: #999966;
+    --color-temple: #cc9966;
+    --color-abyss: #cc6666;
+    --color-irradiated: #66cccc;
+    --color-overseer: #6699cc;
+
+    /* Semantic colors */
+    --color-success: #5a9e5a;
+    --color-warning: #c8a96e;
+    --color-error: #ff6b6b;
+    --color-info: #6699cc;
+
+    /* Gradients */
+    --gradient-bg: linear-gradient(180deg, #1a1a1a 0%, #0e0e0e 100%);
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.3);
+    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.3);
+
+    /* Transitions */
+    --transition-fast: 150ms ease;
+    --transition-normal: 250ms ease;
+    --transition-slow: 350ms ease;
+
+    /* Border radius */
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 8px;
+    --radius-xl: 12px;
+
+    /* Spacing */
+    --spacing-xs: 0.25rem;
+    --spacing-sm: 0.5rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+}
+
+/* ========================================
+   Base Styles (applies to all pages)
+   ======================================== */
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--color-bg-dark);
+    color: var(--color-text-primary);
+    font-family: "Segoe UI", sans-serif;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+/* Links */
+a {
+    color: var(--color-text-gold);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+}
+
+a:hover {
+    color: var(--color-accent-light);
+}
+
+/* Buttons */
+button {
+    cursor: pointer;
+    font-family: inherit;
+    transition: all var(--transition-fast);
+}
+
+/* Cards */
+.card {
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+}
+
+.card:hover {
+    border-color: var(--color-accent);
+    box-shadow: var(--shadow-md);
+}
+
+/* Tables */
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th {
+    text-align: left;
+    padding: var(--spacing-sm) var(--spacing-md);
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+td {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-bottom: 1px solid var(--color-border-light);
+}
+
+tr:hover {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+/* Form inputs */
+input, select {
+    background: var(--color-bg-input);
+    border: 1px solid var(--color-border);
+    color: var(--color-text-primary);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+}
+
+input:focus, select:focus {
+    outline: none;
+    border-color: var(--color-accent);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--color-bg-darker);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--color-text-muted);
+}
+
+/* ========================================
+   Color-Coded Indicators
+   ======================================== */
+
+/* Lift values (higher = better) */
+.lift-excellent { color: var(--color-success); }
+.lift-good { color: var(--color-text-gold); }
+.lift-average { color: var(--color-text-secondary); }
+.lift-poor { color: var(--color-warning); }
+.lift-bad { color: var(--color-error); }
+
+/* Price values */
+.price-high { color: var(--color-success); }
+.price-medium { color: var(--color-text-primary); }
+.price-low { color: var(--color-text-muted); }
+
+/* Profit values */
+.profit-positive { color: var(--color-success); }
+.profit-neutral { color: var(--color-text-primary); }
+.profit-negative { color: var(--color-error); }
+
+/* Buy signal status */
+.buy-strong { background: rgba(90, 158, 90, 0.15); border: 1px solid var(--color-success); color: var(--color-success); }
+.buy-good { background: rgba(200, 169, 110, 0.15); border: 1px solid var(--color-text-gold); color: var(--color-text-gold); }
+.buy-weak { background: rgba(200, 169, 110, 0.1); border: 1px solid var(--color-warning); color: var(--color-warning); }
+.buy-avoid { background: rgba(255, 107, 107, 0.15); border: 1px solid var(--color-error); color: var(--color-error); }
+
+/* Status badges */
+.badge-success { background: rgba(90, 158, 90, 0.15); border: 1px solid var(--color-success); color: var(--color-success); }
+.badge-warning { background: rgba(200, 169, 110, 0.15); border: 1px solid var(--color-warning); color: var(--color-warning); }
+.badge-error { background: rgba(255, 107, 107, 0.15); border: 1px solid var(--color-error); color: var(--color-error); }
+.badge-info { background: rgba(102, 153, 204, 0.15); border: 1px solid var(--color-info); color: var(--color-info); }
+
+/* Tablet type colors */
+.tablet-ritual { color: var(--color-ritual); }
+.tablet-breach { color: var(--color-breach); }
+.tablet-delirium { color: var(--color-delirium); }
+.tablet-expedition { color: var(--color-expedition); }
+.tablet-temple { color: var(--color-temple); }
+.tablet-abyss { color: var(--color-abyss); }
+.tablet-irradiated { color: var(--color-irradiated); }
+.tablet-overseer { color: var(--color-overseer); }
+
+/* Utility classes */
+.text-gold { color: var(--color-text-gold); }
+.text-success { color: var(--color-success); }
+.text-warning { color: var(--color-warning); }
+.text-error { color: var(--color-error); }
+.text-muted { color: var(--color-text-muted); }
+
+/* Animation utilities */
+.animate-pulse-slow {
+    animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+/* Loading spinner */
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--color-border);
+    border-top: 3px solid var(--color-accent);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* ========================================
+   Responsive Design
+   ======================================== */
+
+@media (max-width: 768px) {
+    body {
+        font-size: 12px;
+    }
+
+    .card {
+        padding: var(--spacing-sm);
+    }
+
+    th, td {
+        padding: var(--spacing-xs) var(--spacing-sm);
+    }
+}

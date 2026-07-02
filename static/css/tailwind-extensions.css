@@ -1,0 +1,196 @@
+/**
+ * Tailwind CSS Extensions
+ * Shared styles for PoE2 Tablet Market Intelligence
+ *
+ * Use this alongside Tailwind CSS CDN for consistent styling
+ * across all pages.
+ */
+
+/* Tailwind CDN is loaded separately in each HTML file */
+/* This file adds custom extensions and color-coded indicators */
+
+/* ========================================
+   Color-Coded Value Indicators
+   ======================================== */
+
+/* Lift values (higher = better) */
+.value-lift-excellent {
+    @apply text-emerald-400;
+}
+.value-lift-good {
+    @apply text-green-400;
+}
+.value-lift-average {
+    @apply text-yellow-400;
+}
+.value-lift-poor {
+    @apply text-amber-400;
+}
+.value-lift-bad {
+    @apply text-red-400;
+}
+
+/* Price values (context dependent) */
+.value-price-high {
+    @apply text-emerald-400;
+}
+.value-price-medium {
+    @apply text-white;
+}
+.value-price-low {
+    @apply text-gray-400;
+}
+
+/* Profit values (green = profitable) */
+.value-profit-positive {
+    @apply text-emerald-400;
+}
+.value-profit-neutral {
+    @apply text-white;
+}
+.value-profit-negative {
+    @apply text-red-400;
+}
+
+/* Buy signal status */
+.buy-signal-strong {
+    @apply bg-emerald-900/30 border border-emerald-500 text-emerald-400;
+}
+.buy-signal-good {
+    @apply bg-emerald-900/20 border border-emerald-400 text-emerald-400;
+}
+.buy-signal-weak {
+    @apply bg-amber-900/20 border border-amber-400 text-amber-400;
+}
+.buy-signal-avoid {
+    @apply bg-red-900/30 border border-red-500 text-red-400;
+}
+
+/* Tablet type colors (matching modifiers.html) */
+.tablet-ritual {
+    @apply text-amber-400;
+}
+.tablet-breach {
+    @apply text-purple-400;
+}
+.tablet-delirium {
+    @apply text-green-400;
+}
+.tablet-expedition {
+    @apply text-blue-400;
+}
+.tablet-temple {
+    @apply text-orange-400;
+}
+.tablet-abyss {
+    @apply text-red-400;
+}
+.tablet-irradiated {
+    @apply text-emerald-400;
+}
+.tablet-overseer {
+    @apply text-cyan-400;
+}
+
+/* ========================================
+   Shared Component Styles
+   ======================================== */
+
+/* Card styling - consistent across all pages */
+.card-base {
+    @apply bg-gray-800 border border-gray-700 rounded-lg;
+}
+.card-hover {
+    @apply transition-colors hover:bg-gray-700/50;
+}
+
+/* Button styles */
+.btn-primary {
+    @apply px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg transition-colors;
+}
+.btn-secondary {
+    @apply px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors;
+}
+.btn-small {
+    @apply px-2 py-1 text-xs;
+}
+
+/* Table styles */
+.table-container {
+    @apply overflow-x-auto rounded-lg border border-gray-700;
+}
+.table-base {
+    @apply w-full text-sm;
+}
+.table-header {
+    @apply text-left text-gray-400 uppercase tracking-wider text-xs;
+}
+.table-row {
+    @apply border-t border-gray-700;
+}
+.table-cell {
+    @apply px-4 py-3;
+}
+
+/* Status badges */
+.badge-success {
+    @apply inline-flex items-center px-2 py-1 rounded-full text-xs bg-emerald-900/20 text-emerald-400;
+}
+.badge-warning {
+    @apply inline-flex items-center px-2 py-1 rounded-full text-xs bg-amber-900/20 text-amber-400;
+}
+.badge-error {
+    @apply inline-flex items-center px-2 py-1 rounded-full text-xs bg-red-900/20 text-red-400;
+}
+.badge-info {
+    @apply inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-900/20 text-blue-400;
+}
+
+/* ========================================
+   Utility Classes
+   ======================================== */
+
+/* Text utilities */
+.text-gold {
+    @apply text-amber-400;
+}
+.text-subtle {
+    @apply text-gray-400;
+}
+.text-muted {
+    @apply text-gray-500;
+}
+
+/* Background utilities */
+.bg-dark {
+    @apply bg-gray-900;
+}
+.bg-darker {
+    @apply bg-gray-800;
+}
+.bg-card {
+    @apply bg-gray-800;
+}
+
+/* Border utilities */
+.border-subtle {
+    @apply border-gray-700;
+}
+
+/* Animation utilities */
+.animate-pulse-slow {
+    animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* ========================================
+   Responsive Adjustments
+   ======================================== */
+
+@media (max-width: 768px) {
+    .card-base {
+        @apply p-4;
+    }
+    .table-cell {
+        @apply px-2 py-2;
+    }
+}
