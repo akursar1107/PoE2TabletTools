@@ -35,6 +35,10 @@ class Settings(BaseSettings):
     trade_base_url: str = "https://www.pathofexile.com"
     leagues_api_url: str = "https://api.pathofexile.com/leagues"
 
+    # CORS and frontend settings
+    cors_origins: str = "*"
+    api_base_url: str = ""
+
     @model_validator(mode="before")
     @classmethod
     def _legacy_env_aliases(cls, data: object) -> object:

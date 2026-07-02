@@ -6,6 +6,7 @@
         <title>PoE2 Tablet Modifiers Reference</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <link rel="stylesheet" href="/css/shared.css" />
+        <script src="/js/config.js"></script>
         <style>
             ::-webkit-scrollbar {
                 width: 8px;
@@ -625,7 +626,9 @@
                         .classList.add("visible");
                     lastError = null;
 
-                    const leagueResponse = await fetch("/api/league/info");
+                    const leagueResponse = await fetch(
+                        apiUrl("/api/league/info"),
+                    );
                     if (!leagueResponse.ok) {
                         throw new Error(
                             `League API: ${leagueResponse.status} ${leagueResponse.statusText}`,
@@ -638,7 +641,7 @@
                     document.getElementById("status").id = "status ok";
 
                     const modResponse = await fetch(
-                        "/api/reports/mod-reference",
+                        apiUrl("/api/reports/mod-reference"),
                     );
                     if (!modResponse.ok) {
                         throw new Error(

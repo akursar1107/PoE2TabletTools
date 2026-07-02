@@ -27,12 +27,20 @@ from slowapi.middleware import SlowAPIMiddleware
 
 app.add_middleware(SlowAPIMiddleware)
 
-# CORS middleware
+# CORS middleware - configurable origins for production deployment
+# Split by comma to support multiple origins (e.g., "http://localhost:3000,https://your-site.github.io")
+cors_origins = [
+    origin.strip() for origin in settings.cors_origins.split(",") if origin.strip()
+]
+if cors_origins == ["*"]:
+    cors_origins = ["*"]  # Keep wildcard if that's what's configured
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=cors_origins,
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
+    allow_credentials=True,
 )
 
 if STATIC_DIR.is_dir():

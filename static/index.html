@@ -301,8 +301,12 @@
             </p>
         </footer>
 
+        <script src="/js/config.js"></script>
         <script>
-            const API = window.location.origin || "http://localhost:8001";
+            // API base URL - use config if set, otherwise use current origin
+            // apiUrl("") returns the base URL from config, or empty string if not set
+            // If not set, fall back to current origin (for local development)
+            const API = apiUrl("") || window.location.origin;
             const INTERVAL = 60;
 
             async function updateStatus() {
