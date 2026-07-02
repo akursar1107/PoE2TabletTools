@@ -44,7 +44,10 @@ app.add_middleware(
 )
 
 if STATIC_DIR.is_dir():
+    # Serve static files from /static, /css, and /js paths
     app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+    app.mount("/css", StaticFiles(directory=str(STATIC_DIR / "css")), name="css")
+    app.mount("/js", StaticFiles(directory=str(STATIC_DIR / "js")), name="js")
 
 
 def _league_id() -> int:
