@@ -344,8 +344,9 @@
             </div>
         </div>
 
+        <script src="/js/config.js"></script>
         <script>
-            const API = window.location.origin || "http://localhost:8001";
+            const API = apiUrl("") || window.location.origin;
             let allData = [];
             let favorites = JSON.parse(
                 localStorage.getItem("tabletFavorites") || "{}",
@@ -622,6 +623,6 @@
 
             loadData();
         </script>
-    <script src="/js/shared.js"></script>
+        <script src="/js/shared.js"></script>
     </body>
 </html>
