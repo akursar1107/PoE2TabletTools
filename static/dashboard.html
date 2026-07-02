@@ -552,10 +552,11 @@
         <script>
             // Ensure ColorCoding is available
             if (typeof ColorCoding === "undefined") {
-                console.error(
+                throw new Error(
                     "ColorCoding not defined! Check shared.js loading order.",
                 );
             }
+            console.log("ColorCoding is defined:", typeof ColorCoding);
             const API = apiUrl("") || window.location.origin;
             const INTERVAL = 30;
             let countdown = INTERVAL;
@@ -719,11 +720,16 @@
             }
 
             async function refresh() {
+                console.log("Refresh function called");
                 const loadingOverlay =
                     document.getElementById("loading-overlay");
                 loadingOverlay.classList.add("visible");
 
                 try {
+                    console.log(
+                        "Fetching data from:",
+                        `${API}/api/reports/summary`,
+                    );
                     const res = await fetch(`${API}/api/reports/summary`);
                     if (!res.ok) throw new Error(await res.text());
                     const data = await res.json();
@@ -738,15 +744,20 @@
                     );
 
                     // Render prefixes table (without slot column since all are prefixes)
-                    renderTable("tbl-freq-prefix", prefixes, [
-                        (r) => `<td class="mod">${strip(r.mod_family)}</td>`,
-                        (r) => `<td class="type">${r.tablet_type}</td>`,
-                        (r) => `<td class="num">${r.n}</td>`,
-                        (r) =>
-                            `<td class="price ${ColorCoding.getPriceClass(r.avg_div)}">${fmt(r.avg_div)}</td>`,
-                        (r) =>
-                            `<td class="range">${fmt(r.min_div, 0)}–${fmt(r.max_div, 0)}</td>`,
-                    ]);
+                    try {
+                        renderTable("tbl-freq-prefix", prefixes, [
+                            (r) =>
+                                `<td class="mod">${strip(r.mod_family)}</td>`,
+                            (r) => `<td class="type">${r.tablet_type}</td>`,
+                            (r) => `<td class="num">${r.n}</td>`,
+                            (r) =>
+                                `<td class="price ${ColorCoding.getPriceClass(r.avg_div)}">${fmt(r.avg_div)}</td>`,
+                            (r) =>
+                                `<td class="range">${fmt(r.min_div, 0)}–${fmt(r.max_div, 0)}</td>`,
+                        ]);
+                    } catch (e) {
+                        console.error("Error rendering prefixes table:", e);
+                    }
 
                     // Render suffixes table (without slot column since all are suffixes)
                     renderTable("tbl-freq-suffix", suffixes, [
