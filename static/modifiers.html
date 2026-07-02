@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>PoE2 Tablet Modifiers Reference</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/css/shared.css" />
     <style>
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #1a1a2e; }
@@ -12,44 +13,151 @@
         ::-webkit-scrollbar-thumb:hover { background: #3d3d54; }
         .modifier-item { transition: all 0.2s ease; }
         .modifier-item:hover { background-color: rgba(255,255,255,0.05); }
+        .top-nav {
+            background: #1a1a1a;
+            border-bottom: 1px solid #2a2a2a;
+            padding: 8px 24px;
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+        .top-nav a {
+            color: #888;
+            text-decoration: none;
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        .top-nav a:hover {
+            color: #c8a96e;
+            background: #2a2a2a;
+        }
+        .top-nav a.active {
+            color: #c8a96e;
+            background: #2a2a2a;
+        }
+        .global-search {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: auto;
+        }
+        .global-search-icon {
+            font-size: 14px;
+            color: #666;
+        }
+        .global-search input {
+            background: #2a2a2a;
+            border: 1px solid #3a3a3a;
+            color: #c9b99a;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            width: 200px;
+        }
+        .global-search input:focus {
+            outline: none;
+            border-color: #a08050;
+        }
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+        .loading-overlay.visible {
+            display: flex;
+        }
+        .spinner {
+            border: 3px solid #333;
+            border-top: 3px solid #a08050;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin-right: 16px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .loading-text {
+            font-size: 14px;
+            color: #c8a96e;
+        }
+        #status.ok {
+            color: #5a9e5a;
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-gray-100 min-h-screen">
+    <div id="refresh-bar" class="h-0.5 bg-amber-600 transition-all duration-500"></div>
+
+    <div class="loading-overlay" id="loading-overlay">
+        <div>
+            <div class="spinner"></div>
+            <div class="loading-text">Loading modifiers...</div>
+        </div>
+    </div>
+
+    <header class="px-6 py-3 border-b border-gray-700">
+        <div class="max-w-6xl mx-auto flex items-center justify-between">
+            <h1 class="text-xl font-bold text-amber-400">⬡ Tablet Modifiers Reference</h1>
+            <div class="flex items-center gap-4">
+                <span id="status" class="text-sm text-gray-400">Loading...</span>
+                <span class="version text-sm text-gray-500">v0.2.0</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="top-nav">
+        <a href="/">Home</a>
+        <a href="/dashboard">Main Dashboard</a>
+        <a href="/normal-prices">Normal Prices</a>
+        <a href="/modifiers" class="active">Modifiers</a>
+        <a href="/compare-tablets">Compare</a>
+        <a href="/favorites">Favorites</a>
+        <div class="global-search">
+            <span class="global-search-icon">🔍</span>
+            <input
+                type="text"
+                id="global-search"
+                placeholder="Search..."
+                title="Press Ctrl+K or / to search"
+            />
+        </div>
+    </div>
+
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <header class="mb-8">
-            <div class="flex items-center justify-between mb-4">
-                <div>
-                    <h1 class="text-3xl font-bold text-white">PoE2 Tablet Modifiers Reference</h1>
-                    <p class="text-gray-400 mt-1">Global prefixes + Shared & Unique suffixes per tablet type</p>
-                </div>
-                <button onclick="fetchModifiers()" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded-lg text-sm text-white transition-colors flex items-center space-x-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                    <span>Refresh</span>
-                </button>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div class="bg-gray-800 border border-gray-700 rounded-lg p-4 text-center">
+                <div class="text-2xl mb-2">🏺</div>
+                <p class="text-sm text-gray-400 mb-1">League</p>
+                <p class="text-xl font-bold text-amber-400" id="current-league">Loading...</p>
             </div>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div class="bg-gray-800 border border-gray-700 rounded-lg p-4 text-center">
-                    <div class="text-2xl mb-2">🏺</div>
-                    <p class="text-sm text-gray-400 mb-1">League</p>
-                    <p class="text-xl font-bold text-amber-400" id="current-league">Loading...</p>
-                </div>
-                <div class="bg-gray-800 border border-gray-700 rounded-lg p-4 text-center">
-                    <div class="text-2xl mb-2">📋</div>
-                    <p class="text-sm text-gray-400 mb-1">Tablet Types</p>
-                    <p class="text-xl font-bold text-amber-400" id="tablet-count">0</p>
-                </div>
-                <div class="bg-gray-800 border border-gray-700 rounded-lg p-4 text-center">
-                    <div class="text-2xl mb-2">✨</div>
-                    <p class="text-sm text-gray-400 mb-1">Prefixes</p>
-                    <p class="text-xl font-bold text-amber-400" id="prefix-count">0</p>
-                </div>
-                <div class="bg-gray-800 border border-gray-700 rounded-lg p-4 text-center">
-                    <div class="text-2xl mb-2">🔗</div>
-                    <p class="text-sm text-gray-400 mb-1">Shared Suffixes</p>
-                    <p class="text-xl font-bold text-emerald-400" id="shared-suffix-count">0</p>
-                </div>
+            <div class="bg-gray-800 border border-gray-700 rounded-lg p-4 text-center">
+                <div class="text-2xl mb-2">📋</div>
+                <p class="text-sm text-gray-400 mb-1">Tablet Types</p>
+                <p class="text-xl font-bold text-amber-400" id="tablet-count">0</p>
             </div>
-        </header>
+            <div class="bg-gray-800 border border-gray-700 rounded-lg p-4 text-center">
+                <div class="text-2xl mb-2">✨</div>
+                <p class="text-sm text-gray-400 mb-1">Prefixes</p>
+                <p class="text-xl font-bold text-amber-400" id="prefix-count">0</p>
+            </div>
+            <div class="bg-gray-800 border border-gray-700 rounded-lg p-4 text-center">
+                <div class="text-2xl mb-2">🔗</div>
+                <p class="text-sm text-gray-400 mb-1">Shared Suffixes</p>
+                <p class="text-xl font-bold text-emerald-400" id="shared-suffix-count">0</p>
+            </div>
+        </div>
 
         <main class="space-y-6">
             <section class="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden">
@@ -271,30 +379,69 @@
 
         async function fetchModifiers() {
             try {
-                const leagueResponse = await fetch('http://localhost:8001/api/league/info');
+                document.getElementById('loading-overlay').classList.add('visible');
+
+                const leagueResponse = await fetch('/api/league/info');
                 const leagueData = await leagueResponse.json();
                 document.getElementById('current-league').textContent = leagueData.current_league || 'Unknown';
-                const modResponse = await fetch('http://localhost:8001/api/reports/mod-reference');
+                document.getElementById('status').textContent = 'OK';
+                document.getElementById('status').id = 'status ok';
+
+                const modResponse = await fetch('/api/reports/mod-reference');
                 const modData = await modResponse.json();
                 document.getElementById('tablet-count').textContent = modData.length;
+
                 const allPrefixes = extractAllModifiers(modData, 'prefixes');
                 document.getElementById('prefix-count').textContent = allPrefixes.length;
                 renderPrefixList(allPrefixes);
+
                 const allSuffixesByTablet = extractSuffixesByTablet(modData);
                 const { sharedSuffixes, uniqueSuffixesByTablet } = analyzeSuffixes(allSuffixesByTablet);
                 renderSharedSuffixList(sharedSuffixes);
                 renderUniqueSuffixList(uniqueSuffixesByTablet);
+
+                document.getElementById('loading-overlay').classList.remove('visible');
             } catch (error) {
                 console.error('Error:', error);
                 document.getElementById('current-league').textContent = 'API Error';
+                document.getElementById('status').textContent = 'Error';
                 ['prefix-list', 'shared-suffix-list'].forEach(id => {
-                    document.getElementById(id).innerHTML = '<li class="text-red-400 text-center py-4">Failed to load. Check backend at http://localhost:8001</li>';
+                    document.getElementById(id).innerHTML = '<li class="text-red-400 text-center py-4">Failed to load. Check backend.</li>';
                 });
-                document.getElementById('unique-sections').innerHTML = '<p class="text-red-400 text-center py-4">Failed to load. Check backend at http://localhost:8001</p>';
+                document.getElementById('unique-sections').innerHTML = '<p class="text-red-400 text-center py-4">Failed to load. Check backend.</p>';
+                document.getElementById('loading-overlay').classList.remove('visible');
             }
         }
 
+        // Initialize on load
         fetchModifiers();
+
+        // Set up global search
+        const globalSearchInput = document.getElementById('global-search');
+        if (globalSearchInput) {
+            globalSearchInput.addEventListener('input', function(e) {
+                const query = e.target.value.toLowerCase();
+                const allItems = document.querySelectorAll('.modifier-item');
+                allItems.forEach(item => {
+                    const text = item.textContent.toLowerCase();
+                    item.style.display = text.includes(query) ? 'block' : 'none';
+                });
+            });
+        }
+
+        // Set up refresh bar animation
+        function updateRefreshBar() {
+            const bar = document.getElementById('refresh-bar');
+            const now = Date.now();
+            const fiveMinutes = 5 * 60 * 1000;
+            const timeSinceLoad = now % fiveMinutes;
+            const progress = (timeSinceLoad / fiveMinutes) * 100;
+            bar.style.width = `${progress}%`;
+        }
+        setInterval(updateRefreshBar, 1000);
+        updateRefreshBar();
+
+        // Auto-refresh every 5 minutes
         setInterval(fetchModifiers, 5 * 60 * 1000);
     </script>
 </body>
