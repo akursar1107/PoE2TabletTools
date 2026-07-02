@@ -4,10 +4,12 @@ FastAPI read layer for dashboard and external consumers.
 
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 import poe_tablet_tool.report_builder as report_builder
 from poe_tablet_tool.config import settings
@@ -15,11 +17,21 @@ from poe_tablet_tool.health import get_all_health
 
 STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
 
+# Rate limiter setup
+limiter = Limiter(key_func=get_remote_address)
 app = FastAPI(title="PoE2 Tablet Market Intelligence", version="0.2.0")
+app.state.limiter = limiter
+
+# Add rate limiting middleware
+from slowapi.middleware import SlowAPIMiddleware
+
+app.add_middleware(SlowAPIMiddleware)
+
+# CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_methods=["GET"],
+    allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
 
@@ -246,13 +258,16 @@ def export_prices_csv() -> Response:
 
 
 @app.post("/api/snapshots/trigger")
+@limiter.limit("10/minute")
 def trigger_snapshot(
+    request: Request,
     tablet_type: str = "ritual",
     query_mode: str = "rare",
 ) -> dict:
     """
     Manually trigger a snapshot collection job.
     Useful for backfilling or testing.
+    Rate limited to 10 requests per minute.
     """
     from poe_tablet_tool.query_builder import MAGIC_MODE, NORMAL_MODE, RARE_MODE
     from poe_tablet_tool.scheduler import run_single_snapshot_job

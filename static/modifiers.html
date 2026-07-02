@@ -1,319 +1,484 @@
 <!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>PoE2 Tablet Modifiers Reference</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="/css/shared.css" />
-    <style>
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #1a1a2e; }
-        ::-webkit-scrollbar-thumb { background: #2d2d44; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #3d3d54; }
-        .modifier-item { transition: all 0.2s ease; }
-        .modifier-item:hover { background-color: rgba(255,255,255,0.05); }
-        .top-nav {
-            background: #1a1a1a;
-            border-bottom: 1px solid #2a2a2a;
-            padding: 8px 24px;
-            display: flex;
-            gap: 24px;
-            flex-wrap: wrap;
-        }
-        .top-nav a {
-            color: #888;
-            text-decoration: none;
-            font-size: 12px;
-            padding: 4px 8px;
-            border-radius: 4px;
-            transition: all 0.2s;
-        }
-        .top-nav a:hover {
-            color: #c8a96e;
-            background: #2a2a2a;
-        }
-        .top-nav a.active {
-            color: #c8a96e;
-            background: #2a2a2a;
-        }
-        .global-search {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-left: auto;
-        }
-        .global-search-icon {
-            font-size: 14px;
-            color: #666;
-        }
-        .global-search input {
-            background: #2a2a2a;
-            border: 1px solid #3a3a3a;
-            color: #c9b99a;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            width: 200px;
-        }
-        .global-search input:focus {
-            outline: none;
-            border-color: #a08050;
-        }
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.8);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 10000;
-        }
-        .loading-overlay.visible {
-            display: flex;
-        }
-        .spinner {
-            border: 3px solid #333;
-            border-top: 3px solid #a08050;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin-right: 16px;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        .loading-text {
-            font-size: 14px;
-            color: #c8a96e;
-        }
-        #status.ok {
-            color: #5a9e5a;
-        }
-    </style>
-</head>
-<body class="bg-gray-900 text-gray-100 min-h-screen">
-    <div id="refresh-bar" class="h-0.5 bg-amber-600 transition-all duration-500"></div>
-
-    <div class="loading-overlay" id="loading-overlay">
-        <div>
-            <div class="spinner"></div>
-            <div class="loading-text">Loading modifiers...</div>
-        </div>
-    </div>
-
-    <header class="px-6 py-3 border-b border-gray-700">
-        <div class="max-w-6xl mx-auto flex items-center justify-between">
-            <h1 class="text-xl font-bold text-amber-400">⬡ Tablet Modifiers Reference</h1>
-            <div class="flex items-center gap-4">
-                <span id="status" class="text-sm text-gray-400">Loading...</span>
-                <span class="version text-sm text-gray-500">v0.2.0</span>
-            </div>
-        </div>
-    </header>
-
-    <div class="top-nav">
-        <a href="/">Home</a>
-        <a href="/dashboard">Main Dashboard</a>
-        <a href="/normal-prices">Normal Prices</a>
-        <a href="/modifiers" class="active">Modifiers</a>
-        <a href="/compare-tablets">Compare</a>
-        <a href="/favorites">Favorites</a>
-        <div class="global-search">
-            <span class="global-search-icon">🔍</span>
-            <input
-                type="text"
-                id="global-search"
-                placeholder="Search..."
-                title="Press Ctrl+K or / to search"
-            />
-        </div>
-    </div>
-
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            <div class="bg-gray-800 border border-gray-700 rounded-lg p-4 text-center">
-                <div class="text-2xl mb-2">🏺</div>
-                <p class="text-sm text-gray-400 mb-1">League</p>
-                <p class="text-xl font-bold text-amber-400" id="current-league">Loading...</p>
-            </div>
-            <div class="bg-gray-800 border border-gray-700 rounded-lg p-4 text-center">
-                <div class="text-2xl mb-2">📋</div>
-                <p class="text-sm text-gray-400 mb-1">Tablet Types</p>
-                <p class="text-xl font-bold text-amber-400" id="tablet-count">0</p>
-            </div>
-            <div class="bg-gray-800 border border-gray-700 rounded-lg p-4 text-center">
-                <div class="text-2xl mb-2">✨</div>
-                <p class="text-sm text-gray-400 mb-1">Prefixes</p>
-                <p class="text-xl font-bold text-amber-400" id="prefix-count">0</p>
-            </div>
-            <div class="bg-gray-800 border border-gray-700 rounded-lg p-4 text-center">
-                <div class="text-2xl mb-2">🔗</div>
-                <p class="text-sm text-gray-400 mb-1">Shared Suffixes</p>
-                <p class="text-xl font-bold text-emerald-400" id="shared-suffix-count">0</p>
-            </div>
-        </div>
-
-        <main class="space-y-6">
-            <section class="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden">
-                <button onclick="toggleSection('prefixes')" class="w-full p-4 text-left flex items-center justify-between hover:bg-gray-700/50 transition-colors">
-                    <div class="flex items-center space-x-3">
-                        <span class="text-2xl">✨</span>
-                        <h2 class="text-xl font-semibold text-white">Global Prefixes</h2>
-                        <span class="text-sm text-gray-400 bg-gray-700 px-2 py-1 rounded-full" id="prefix-badge">0</span>
-                    </div>
-                    <svg id="prefixes-icon" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-400 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                </button>
-                <div id="prefixes-content" class="p-4 pt-0"><ul class="space-y-2" id="prefix-list"><li class="text-gray-500 text-center py-4">Loading...</li></ul></div>
-            </section>
-
-            <section class="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden">
-                <button onclick="toggleSection('shared-suffixes')" class="w-full p-4 text-left flex items-center justify-between hover:bg-gray-700/50 transition-colors">
-                    <div class="flex items-center space-x-3">
-                        <span class="text-2xl">🔗</span>
-                        <h2 class="text-xl font-semibold text-white">Shared Suffixes</h2>
-                        <span class="text-sm text-gray-400 bg-emerald-900/20 text-emerald-400 px-2 py-1 rounded-full" id="shared-badge">0</span>
-                    </div>
-                    <svg id="shared-suffixes-icon" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-400 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                </button>
-                <div id="shared-suffixes-content" class="p-4 pt-0"><ul class="space-y-2" id="shared-suffix-list"><li class="text-gray-500 text-center py-4">Loading...</li></ul></div>
-            </section>
-
-            <div class="space-y-4" id="unique-sections"></div>
-        </main>
-
-        <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})" class="fixed bottom-6 right-6 p-3 bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded-full text-white transition-colors shadow-lg z-50" title="Back to top">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>
-        </button>
-    </div>
-
-    <script>
-        const tabletInfo = {
-            ritual: { icon: "🏺", name: "Ritual", color: "amber" },
-            breach: { icon: "⚡", name: "Breach", color: "purple" },
-            delirium: { icon: "🌀", name: "Delirium", color: "green" },
-            expedition: { icon: "⛺", name: "Expedition", color: "blue" },
-            temple: { icon: "🏛️", name: "Temple", color: "orange" },
-            abyss: { icon: "🕳️", name: "Abyss", color: "red" },
-            irradiated: { icon: "☢️", name: "Irradiated", color: "emerald" },
-            overseer: { icon: "👁️", name: "Overseer", color: "cyan" }
-        };
-
-        const expandedSections = new Set(['prefixes', 'shared-suffixes']);
-
-        function toggleSection(sectionId) {
-            const content = document.getElementById(sectionId + '-content');
-            const icon = document.getElementById(sectionId + '-icon');
-            if (expandedSections.has(sectionId)) {
-                expandedSections.delete(sectionId);
-                content.style.display = 'none';
-                icon.style.transform = 'rotate(0deg)';
-            } else {
-                expandedSections.add(sectionId);
-                content.style.display = 'block';
-                icon.style.transform = 'rotate(180deg)';
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>PoE2 Tablet Modifiers Reference</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link rel="stylesheet" href="/css/shared.css" />
+        <style>
+            ::-webkit-scrollbar {
+                width: 8px;
             }
-        }
-
-        function toggleTabletSection(tabletType) {
-            const sectionId = `tablet-${tabletType}`;
-            const content = document.getElementById(sectionId + '-content');
-            const icon = document.querySelector(`#${sectionId} .tablet-icon`);
-            if (content.style.display === 'none' || !content.style.display) {
-                content.style.display = 'block';
-                icon.style.transform = 'rotate(180deg)';
-            } else {
-                content.style.display = 'none';
-                icon.style.transform = 'rotate(0deg)';
+            ::-webkit-scrollbar-track {
+                background: #1a1a2e;
             }
-        }
+            ::-webkit-scrollbar-thumb {
+                background: #2d2d44;
+                border-radius: 4px;
+            }
+            ::-webkit-scrollbar-thumb:hover {
+                background: #3d3d54;
+            }
+            .modifier-item {
+                transition: all 0.2s ease;
+            }
+            .modifier-item:hover {
+                background-color: rgba(255, 255, 255, 0.05);
+            }
+            .top-nav {
+                background: #1a1a1a;
+                border-bottom: 1px solid #2a2a2a;
+                padding: 8px 24px;
+                display: flex;
+                gap: 24px;
+                flex-wrap: wrap;
+            }
+            .top-nav a {
+                color: #888;
+                text-decoration: none;
+                font-size: 12px;
+                padding: 4px 8px;
+                border-radius: 4px;
+                transition: all 0.2s;
+            }
+            .top-nav a:hover {
+                color: #c8a96e;
+                background: #2a2a2a;
+            }
+            .top-nav a.active {
+                color: #c8a96e;
+                background: #2a2a2a;
+            }
+            .global-search {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                margin-left: auto;
+            }
+            .global-search-icon {
+                font-size: 14px;
+                color: #666;
+            }
+            .global-search input {
+                background: #2a2a2a;
+                border: 1px solid #3a3a3a;
+                color: #c9b99a;
+                padding: 4px 8px;
+                border-radius: 4px;
+                font-size: 12px;
+                width: 200px;
+            }
+            .global-search input:focus {
+                outline: none;
+                border-color: #a08050;
+            }
+            .loading-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.8);
+                display: none;
+                align-items: center;
+                justify-content: center;
+                z-index: 10000;
+            }
+            .loading-overlay.visible {
+                display: flex;
+            }
+            .spinner {
+                border: 3px solid #333;
+                border-top: 3px solid #a08050;
+                border-radius: 50%;
+                width: 40px;
+                height: 40px;
+                animation: spin 1s linear infinite;
+                margin-right: 16px;
+            }
+            @keyframes spin {
+                0% {
+                    transform: rotate(0deg);
+                }
+                100% {
+                    transform: rotate(360deg);
+                }
+            }
+            .loading-text {
+                font-size: 14px;
+                color: #c8a96e;
+            }
+            #status.ok {
+                color: #5a9e5a;
+            }
+        </style>
+    </head>
+    <body class="bg-gray-900 text-gray-100 min-h-screen">
+        <div
+            id="refresh-bar"
+            class="h-0.5 bg-amber-600 transition-all duration-500"
+        ></div>
 
-        function formatModName(name) {
-            if (!name) return "";
-            return name.replace(/of /g, "").replace(/^The /g, "").replace(/^A /g, "").replace(/^An /g, "").replace(/'s$/g, "").trim();
-        }
+        <div class="loading-overlay" id="loading-overlay">
+            <div>
+                <div class="spinner"></div>
+                <div class="loading-text">Loading modifiers...</div>
+            </div>
+        </div>
 
-        function formatDescription(desc) {
-            if (!desc) return "";
-            return desc.replace(/Map /g, "").replace(/ in Map/g, "").replace(/has /g, "").replace(/#%/g, "").replace(/\[.*?\]/g, "").replace(/  /g, " ").trim();
-        }
+        <header class="px-6 py-3 border-b border-gray-700">
+            <div class="max-w-6xl mx-auto flex items-center justify-between">
+                <h1 class="text-xl font-bold text-amber-400">
+                    ⬡ Tablet Modifiers Reference
+                </h1>
+                <div class="flex items-center gap-4">
+                    <span id="status" class="text-sm text-gray-400"
+                        >Loading...</span
+                    >
+                    <span class="version text-sm text-gray-500">v0.2.0</span>
+                </div>
+            </div>
+        </header>
 
-        function extractAllModifiers(data, type) {
-            const allMods = [];
-            const seen = new Set();
-            for (const tablet of data) {
-                const mods = tablet[type];
-                for (const category of Object.values(mods)) {
-                    for (const mod of category.mods) {
-                        if (!seen.has(mod.name)) {
-                            seen.add(mod.name);
-                            allMods.push(mod);
+        <div class="top-nav">
+            <a href="/">Home</a>
+            <a href="/dashboard">Main Dashboard</a>
+            <a href="/normal-prices">Normal Prices</a>
+            <a href="/modifiers" class="active">Modifiers</a>
+            <a href="/compare-tablets">Compare</a>
+            <a href="/favorites">Favorites</a>
+            <div class="global-search">
+                <span class="global-search-icon">🔍</span>
+                <input
+                    type="text"
+                    id="global-search"
+                    placeholder="Search..."
+                    title="Press Ctrl+K or / to search"
+                />
+            </div>
+        </div>
+
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <div
+                    class="bg-gray-800 border border-gray-700 rounded-lg p-4 text-center"
+                >
+                    <div class="text-2xl mb-2">🏺</div>
+                    <p class="text-sm text-gray-400 mb-1">League</p>
+                    <p
+                        class="text-xl font-bold text-amber-400"
+                        id="current-league"
+                    >
+                        Loading...
+                    </p>
+                </div>
+                <div
+                    class="bg-gray-800 border border-gray-700 rounded-lg p-4 text-center"
+                >
+                    <div class="text-2xl mb-2">📋</div>
+                    <p class="text-sm text-gray-400 mb-1">Tablet Types</p>
+                    <p
+                        class="text-xl font-bold text-amber-400"
+                        id="tablet-count"
+                    >
+                        0
+                    </p>
+                </div>
+                <div
+                    class="bg-gray-800 border border-gray-700 rounded-lg p-4 text-center"
+                >
+                    <div class="text-2xl mb-2">✨</div>
+                    <p class="text-sm text-gray-400 mb-1">Prefixes</p>
+                    <p
+                        class="text-xl font-bold text-amber-400"
+                        id="prefix-count"
+                    >
+                        0
+                    </p>
+                </div>
+                <div
+                    class="bg-gray-800 border border-gray-700 rounded-lg p-4 text-center"
+                >
+                    <div class="text-2xl mb-2">🔗</div>
+                    <p class="text-sm text-gray-400 mb-1">Shared Suffixes</p>
+                    <p
+                        class="text-xl font-bold text-emerald-400"
+                        id="shared-suffix-count"
+                    >
+                        0
+                    </p>
+                </div>
+            </div>
+
+            <main class="space-y-6">
+                <section
+                    class="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden"
+                >
+                    <button
+                        onclick="toggleSection('prefixes')"
+                        class="w-full p-4 text-left flex items-center justify-between hover:bg-gray-700/50 transition-colors"
+                    >
+                        <div class="flex items-center space-x-3">
+                            <span class="text-2xl">✨</span>
+                            <h2 class="text-xl font-semibold text-white">
+                                Global Prefixes
+                            </h2>
+                            <span
+                                class="text-sm text-gray-400 bg-gray-700 px-2 py-1 rounded-full"
+                                id="prefix-badge"
+                                >0</span
+                            >
+                        </div>
+                        <svg
+                            id="prefixes-icon"
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="w-5 h-5 text-gray-400 transition-transform"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M19 9l-7 7-7-7"
+                            />
+                        </svg>
+                    </button>
+                    <div id="prefixes-content" class="p-4 pt-0">
+                        <ul class="space-y-2" id="prefix-list">
+                            <li class="text-gray-500 text-center py-4">
+                                Loading...
+                            </li>
+                        </ul>
+                    </div>
+                </section>
+
+                <section
+                    class="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden"
+                >
+                    <button
+                        onclick="toggleSection('shared-suffixes')"
+                        class="w-full p-4 text-left flex items-center justify-between hover:bg-gray-700/50 transition-colors"
+                    >
+                        <div class="flex items-center space-x-3">
+                            <span class="text-2xl">🔗</span>
+                            <h2 class="text-xl font-semibold text-white">
+                                Shared Suffixes
+                            </h2>
+                            <span
+                                class="text-sm text-gray-400 bg-emerald-900/20 text-emerald-400 px-2 py-1 rounded-full"
+                                id="shared-badge"
+                                >0</span
+                            >
+                        </div>
+                        <svg
+                            id="shared-suffixes-icon"
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="w-5 h-5 text-gray-400 transition-transform"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M19 9l-7 7-7-7"
+                            />
+                        </svg>
+                    </button>
+                    <div id="shared-suffixes-content" class="p-4 pt-0">
+                        <ul class="space-y-2" id="shared-suffix-list">
+                            <li class="text-gray-500 text-center py-4">
+                                Loading...
+                            </li>
+                        </ul>
+                    </div>
+                </section>
+
+                <div class="space-y-4" id="unique-sections"></div>
+            </main>
+
+            <button
+                onclick="window.scrollTo({ top: 0, behavior: 'smooth' })"
+                class="fixed bottom-6 right-6 p-3 bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded-full text-white transition-colors shadow-lg z-50"
+                title="Back to top"
+            >
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M5 15l7-7 7 7"
+                    />
+                </svg>
+            </button>
+        </div>
+
+        <script>
+            const tabletInfo = {
+                ritual: { icon: "🏺", name: "Ritual", color: "amber" },
+                breach: { icon: "⚡", name: "Breach", color: "purple" },
+                delirium: { icon: "🌀", name: "Delirium", color: "green" },
+                expedition: { icon: "⛺", name: "Expedition", color: "blue" },
+                temple: { icon: "🏛️", name: "Temple", color: "orange" },
+                abyss: { icon: "🕳️", name: "Abyss", color: "red" },
+                irradiated: {
+                    icon: "☢️",
+                    name: "Irradiated",
+                    color: "emerald",
+                },
+                overseer: { icon: "👁️", name: "Overseer", color: "cyan" },
+            };
+
+            const expandedSections = new Set(["prefixes", "shared-suffixes"]);
+
+            function toggleSection(sectionId) {
+                const content = document.getElementById(sectionId + "-content");
+                const icon = document.getElementById(sectionId + "-icon");
+                if (expandedSections.has(sectionId)) {
+                    expandedSections.delete(sectionId);
+                    content.style.display = "none";
+                    icon.style.transform = "rotate(0deg)";
+                } else {
+                    expandedSections.add(sectionId);
+                    content.style.display = "block";
+                    icon.style.transform = "rotate(180deg)";
+                }
+            }
+
+            function toggleTabletSection(tabletType) {
+                const sectionId = `tablet-${tabletType}`;
+                const content = document.getElementById(sectionId + "-content");
+                const icon = document.querySelector(
+                    `#${sectionId} .tablet-icon`,
+                );
+                if (
+                    content.style.display === "none" ||
+                    !content.style.display
+                ) {
+                    content.style.display = "block";
+                    icon.style.transform = "rotate(180deg)";
+                } else {
+                    content.style.display = "none";
+                    icon.style.transform = "rotate(0deg)";
+                }
+            }
+
+            function formatModName(name) {
+                if (!name) return "";
+                return name
+                    .replace(/of /g, "")
+                    .replace(/^The /g, "")
+                    .replace(/^A /g, "")
+                    .replace(/^An /g, "")
+                    .replace(/'s$/g, "")
+                    .trim();
+            }
+
+            function formatDescription(desc) {
+                if (!desc) return "";
+                return desc
+                    .replace(/Map /g, "")
+                    .replace(/ in Map/g, "")
+                    .replace(/has /g, "")
+                    .replace(/#%/g, "")
+                    .replace(/\[.*?\]/g, "")
+                    .replace(/  /g, " ")
+                    .trim();
+            }
+
+            function extractAllModifiers(data, type) {
+                const allMods = [];
+                const seen = new Set();
+                for (const tablet of data) {
+                    const mods = tablet[type];
+                    for (const category of Object.values(mods)) {
+                        for (const mod of category.mods) {
+                            if (!seen.has(mod.name)) {
+                                seen.add(mod.name);
+                                allMods.push(mod);
+                            }
                         }
                     }
                 }
+                return allMods.sort((a, b) => a.name.localeCompare(b.name));
             }
-            return allMods.sort((a, b) => a.name.localeCompare(b.name));
-        }
 
-        function extractSuffixesByTablet(data) {
-            const result = {};
-            for (const tablet of data) {
-                const suffixes = [];
-                for (const category of Object.values(tablet.suffixes)) {
-                    suffixes.push(...category.mods);
-                }
-                result[tablet.tablet_type] = suffixes;
-            }
-            return result;
-        }
-
-        function analyzeSuffixes(allSuffixesByTablet) {
-            const allTabletTypes = Object.keys(allSuffixesByTablet);
-            const allSuffixNames = new Map();
-            for (const tabletType of allTabletTypes) {
-                for (const suffix of allSuffixesByTablet[tabletType]) {
-                    if (!allSuffixNames.has(suffix.name)) {
-                        allSuffixNames.set(suffix.name, suffix);
+            function extractSuffixesByTablet(data) {
+                const result = {};
+                for (const tablet of data) {
+                    const suffixes = [];
+                    for (const category of Object.values(tablet.suffixes)) {
+                        suffixes.push(...category.mods);
                     }
+                    result[tablet.tablet_type] = suffixes;
                 }
+                return result;
             }
-            const sharedSuffixNames = new Set();
-            const firstTablet = allTabletTypes[0];
-            for (const suffixName of allSuffixesByTablet[firstTablet].map(s => s.name)) {
-                let isShared = true;
+
+            function analyzeSuffixes(allSuffixesByTablet) {
+                const allTabletTypes = Object.keys(allSuffixesByTablet);
+                const allSuffixNames = new Map();
                 for (const tabletType of allTabletTypes) {
-                    if (!allSuffixesByTablet[tabletType].some(s => s.name === suffixName)) {
-                        isShared = false;
-                        break;
+                    for (const suffix of allSuffixesByTablet[tabletType]) {
+                        if (!allSuffixNames.has(suffix.name)) {
+                            allSuffixNames.set(suffix.name, suffix);
+                        }
                     }
                 }
-                if (isShared) sharedSuffixNames.add(suffixName);
-            }
-            const sharedSuffixes = [];
-            const uniqueSuffixesByTablet = {};
-            for (const tabletType of allTabletTypes) uniqueSuffixesByTablet[tabletType] = [];
-            for (const suffixName of sharedSuffixNames) sharedSuffixes.push(allSuffixNames.get(suffixName));
-            for (const tabletType of allTabletTypes) {
-                for (const suffix of allSuffixesByTablet[tabletType]) {
-                    if (!sharedSuffixNames.has(suffix.name)) {
-                        uniqueSuffixesByTablet[tabletType].push(suffix);
+                const sharedSuffixNames = new Set();
+                const firstTablet = allTabletTypes[0];
+                for (const suffixName of allSuffixesByTablet[firstTablet].map(
+                    (s) => s.name,
+                )) {
+                    let isShared = true;
+                    for (const tabletType of allTabletTypes) {
+                        if (
+                            !allSuffixesByTablet[tabletType].some(
+                                (s) => s.name === suffixName,
+                            )
+                        ) {
+                            isShared = false;
+                            break;
+                        }
                     }
+                    if (isShared) sharedSuffixNames.add(suffixName);
                 }
-                uniqueSuffixesByTablet[tabletType].sort((a, b) => a.name.localeCompare(b.name));
+                const sharedSuffixes = [];
+                const uniqueSuffixesByTablet = {};
+                for (const tabletType of allTabletTypes)
+                    uniqueSuffixesByTablet[tabletType] = [];
+                for (const suffixName of sharedSuffixNames)
+                    sharedSuffixes.push(allSuffixNames.get(suffixName));
+                for (const tabletType of allTabletTypes) {
+                    for (const suffix of allSuffixesByTablet[tabletType]) {
+                        if (!sharedSuffixNames.has(suffix.name)) {
+                            uniqueSuffixesByTablet[tabletType].push(suffix);
+                        }
+                    }
+                    uniqueSuffixesByTablet[tabletType].sort((a, b) =>
+                        a.name.localeCompare(b.name),
+                    );
+                }
+                sharedSuffixes.sort((a, b) => a.name.localeCompare(b.name));
+                return { sharedSuffixes, uniqueSuffixesByTablet };
             }
-            sharedSuffixes.sort((a, b) => a.name.localeCompare(b.name));
-            return { sharedSuffixes, uniqueSuffixesByTablet };
-        }
 
-        function renderPrefixList(prefixes) {
-            const container = document.getElementById('prefix-list');
-            if (!container) return;
-            container.innerHTML = prefixes.map((prefix, index) => `
+            function renderPrefixList(prefixes) {
+                const container = document.getElementById("prefix-list");
+                if (!container) return;
+                container.innerHTML = prefixes
+                    .map(
+                        (prefix, index) => `
                 <li class="modifier-item p-3 bg-gray-700/30 rounded-lg border border-gray-600/30">
                     <div class="flex items-center space-x-3">
                         <span class="text-sm font-bold text-amber-400 w-6 text-center">#${index + 1}</span>
@@ -321,14 +486,19 @@
                     </div>
                     <p class="text-xs text-gray-400 mt-1 pl-9">${formatDescription(prefix.description)}</p>
                 </li>
-            `).join('');
-            document.getElementById('prefix-badge').textContent = prefixes.length;
-        }
+            `,
+                    )
+                    .join("");
+                document.getElementById("prefix-badge").textContent =
+                    prefixes.length;
+            }
 
-        function renderSharedSuffixList(suffixes) {
-            const container = document.getElementById('shared-suffix-list');
-            if (!container) return;
-            container.innerHTML = suffixes.map((suffix, index) => `
+            function renderSharedSuffixList(suffixes) {
+                const container = document.getElementById("shared-suffix-list");
+                if (!container) return;
+                container.innerHTML = suffixes
+                    .map(
+                        (suffix, index) => `
                 <li class="modifier-item p-3 bg-gray-700/30 rounded-lg border border-gray-600/30">
                     <div class="flex items-center space-x-3">
                         <span class="text-sm font-bold text-emerald-400 w-6 text-center">#${index + 1}</span>
@@ -336,20 +506,27 @@
                     </div>
                     <p class="text-xs text-gray-400 mt-1 pl-9">${formatDescription(suffix.description)}</p>
                 </li>
-            `).join('');
-            document.getElementById('shared-badge').textContent = suffixes.length;
-            document.getElementById('shared-suffix-count').textContent = suffixes.length;
-        }
+            `,
+                    )
+                    .join("");
+                document.getElementById("shared-badge").textContent =
+                    suffixes.length;
+                document.getElementById("shared-suffix-count").textContent =
+                    suffixes.length;
+            }
 
-        function renderUniqueSuffixList(uniqueSuffixesByTablet) {
-            const container = document.getElementById('unique-sections');
-            if (!container) return;
-            const tabletTypes = Object.keys(uniqueSuffixesByTablet).filter(tt => uniqueSuffixesByTablet[tt].length > 0).sort();
-            container.innerHTML = tabletTypes.map(tabletType => {
-                const info = tabletInfo[tabletType];
-                const suffixes = uniqueSuffixesByTablet[tabletType];
-                const sectionId = `tablet-${tabletType}`;
-                return `
+            function renderUniqueSuffixList(uniqueSuffixesByTablet) {
+                const container = document.getElementById("unique-sections");
+                if (!container) return;
+                const tabletTypes = Object.keys(uniqueSuffixesByTablet)
+                    .filter((tt) => uniqueSuffixesByTablet[tt].length > 0)
+                    .sort();
+                container.innerHTML = tabletTypes
+                    .map((tabletType) => {
+                        const info = tabletInfo[tabletType];
+                        const suffixes = uniqueSuffixesByTablet[tabletType];
+                        const sectionId = `tablet-${tabletType}`;
+                        return `
                     <section class="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden">
                         <button onclick="toggleTabletSection('${tabletType}')" class="w-full p-4 text-left flex items-center justify-between hover:bg-gray-700/50 transition-colors">
                             <div class="flex items-center space-x-3">
@@ -361,7 +538,9 @@
                         </button>
                         <div id="${sectionId}-content" class="tablet-content p-4 pt-0 block">
                             <ul class="space-y-2">
-                                ${suffixes.map((suffix, index) => `
+                                ${suffixes
+                                    .map(
+                                        (suffix, index) => `
                                     <li class="modifier-item p-3 bg-gray-700/30 rounded-lg border border-gray-600/30">
                                         <div class="flex items-center space-x-3">
                                             <span class="text-sm font-bold text-${info.color}-400 w-6 text-center">#${index + 1}</span>
@@ -369,80 +548,155 @@
                                         </div>
                                         <p class="text-xs text-gray-400 mt-1 pl-9">${formatDescription(suffix.description)}</p>
                                     </li>
-                                `).join('')}
+                                `,
+                                    )
+                                    .join("")}
                             </ul>
                         </div>
                     </section>
                 `;
-            }).join('');
-        }
-
-        async function fetchModifiers() {
-            try {
-                document.getElementById('loading-overlay').classList.add('visible');
-
-                const leagueResponse = await fetch('/api/league/info');
-                const leagueData = await leagueResponse.json();
-                document.getElementById('current-league').textContent = leagueData.current_league || 'Unknown';
-                document.getElementById('status').textContent = 'OK';
-                document.getElementById('status').id = 'status ok';
-
-                const modResponse = await fetch('/api/reports/mod-reference');
-                const modData = await modResponse.json();
-                document.getElementById('tablet-count').textContent = modData.length;
-
-                const allPrefixes = extractAllModifiers(modData, 'prefixes');
-                document.getElementById('prefix-count').textContent = allPrefixes.length;
-                renderPrefixList(allPrefixes);
-
-                const allSuffixesByTablet = extractSuffixesByTablet(modData);
-                const { sharedSuffixes, uniqueSuffixesByTablet } = analyzeSuffixes(allSuffixesByTablet);
-                renderSharedSuffixList(sharedSuffixes);
-                renderUniqueSuffixList(uniqueSuffixesByTablet);
-
-                document.getElementById('loading-overlay').classList.remove('visible');
-            } catch (error) {
-                console.error('Error:', error);
-                document.getElementById('current-league').textContent = 'API Error';
-                document.getElementById('status').textContent = 'Error';
-                ['prefix-list', 'shared-suffix-list'].forEach(id => {
-                    document.getElementById(id).innerHTML = '<li class="text-red-400 text-center py-4">Failed to load. Check backend.</li>';
-                });
-                document.getElementById('unique-sections').innerHTML = '<p class="text-red-400 text-center py-4">Failed to load. Check backend.</p>';
-                document.getElementById('loading-overlay').classList.remove('visible');
+                    })
+                    .join("");
             }
-        }
 
-        // Initialize on load
-        fetchModifiers();
+            // Track error state for retry button
+            let lastError = null;
 
-        // Set up global search
-        const globalSearchInput = document.getElementById('global-search');
-        if (globalSearchInput) {
-            globalSearchInput.addEventListener('input', function(e) {
-                const query = e.target.value.toLowerCase();
-                const allItems = document.querySelectorAll('.modifier-item');
-                allItems.forEach(item => {
-                    const text = item.textContent.toLowerCase();
-                    item.style.display = text.includes(query) ? 'block' : 'none';
+            function showError(error, endpoint) {
+                console.error("Error:", error);
+                const errorMsg = error.message || String(error);
+                const errorDetails = errorMsg.toLowerCase();
+
+                // More descriptive error messages
+                let displayMsg = "Failed to load data";
+                if (
+                    errorDetails.includes("failed to fetch") ||
+                    errorDetails.includes("network")
+                ) {
+                    displayMsg =
+                        "Cannot connect to backend server. Is it running on port 8001?";
+                } else if (errorDetails.includes("404")) {
+                    displayMsg =
+                        "API endpoint not found. Backend may need to be restarted.";
+                } else if (
+                    errorDetails.includes("500") ||
+                    errorDetails.includes("503")
+                ) {
+                    displayMsg =
+                        "Backend server error. Check logs for details.";
+                } else if (errorDetails.includes("429")) {
+                    displayMsg = "Rate limited. Please wait and try again.";
+                }
+
+                lastError = {
+                    message: displayMsg,
+                    endpoint,
+                    timestamp: Date.now(),
+                };
+
+                document.getElementById("current-league").textContent = "Error";
+                document.getElementById("status").textContent = "Error";
+                document.getElementById("status").className =
+                    "text-sm text-red-400";
+
+                ["prefix-list", "shared-suffix-list"].forEach((id) => {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        el.innerHTML = `<li class="text-red-400 text-center py-4">${displayMsg}</li>`;
+                    }
                 });
-            });
-        }
+                document.getElementById("unique-sections").innerHTML = `
+                <div class="bg-gray-800 border border-red-500 rounded-lg p-6 text-center">
+                    <p class="text-red-400 mb-4">${displayMsg}</p>
+                    <button onclick="fetchModifiers()" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm transition-colors">
+                        ✓ Retry
+                    </button>
+                </div>
+            `;
+                document
+                    .getElementById("loading-overlay")
+                    .classList.remove("visible");
+            }
 
-        // Set up refresh bar animation
-        function updateRefreshBar() {
-            const bar = document.getElementById('refresh-bar');
-            const now = Date.now();
-            const fiveMinutes = 5 * 60 * 1000;
-            const timeSinceLoad = now % fiveMinutes;
-            const progress = (timeSinceLoad / fiveMinutes) * 100;
-            bar.style.width = `${progress}%`;
-        }
-        setInterval(updateRefreshBar, 1000);
-        updateRefreshBar();
+            async function fetchModifiers() {
+                try {
+                    document
+                        .getElementById("loading-overlay")
+                        .classList.add("visible");
+                    lastError = null;
 
-        // Auto-refresh every 5 minutes
-        setInterval(fetchModifiers, 5 * 60 * 1000);
-    </script>
-</body>
+                    const leagueResponse = await fetch("/api/league/info");
+                    if (!leagueResponse.ok) {
+                        throw new Error(
+                            `League API: ${leagueResponse.status} ${leagueResponse.statusText}`,
+                        );
+                    }
+                    const leagueData = await leagueResponse.json();
+                    document.getElementById("current-league").textContent =
+                        leagueData.current_league || "Unknown";
+                    document.getElementById("status").textContent = "OK";
+                    document.getElementById("status").id = "status ok";
+
+                    const modResponse = await fetch(
+                        "/api/reports/mod-reference",
+                    );
+                    if (!modResponse.ok) {
+                        throw new Error(
+                            `Mod reference API: ${modResponse.status} ${modResponse.statusText}`,
+                        );
+                    }
+                    const modData = await modResponse.json();
+                    document.getElementById("tablet-count").textContent =
+                        modData.length;
+
+                    const allPrefixes = extractAllModifiers(
+                        modData,
+                        "prefixes",
+                    );
+                    document.getElementById("prefix-count").textContent =
+                        allPrefixes.length;
+                    renderPrefixList(allPrefixes);
+
+                    const allSuffixesByTablet =
+                        extractSuffixesByTablet(modData);
+                    const { sharedSuffixes, uniqueSuffixesByTablet } =
+                        analyzeSuffixes(allSuffixesByTablet);
+                    renderSharedSuffixList(sharedSuffixes);
+                    renderUniqueSuffixList(uniqueSuffixesByTablet);
+
+                    document
+                        .getElementById("loading-overlay")
+                        .classList.remove("visible");
+                } catch (error) {
+                    showError(error, "mod-reference");
+                }
+            }
+
+            // Initialize on load
+            fetchModifiers();
+
+            // Set up global search
+            const globalSearchInput = document.getElementById("global-search");
+            if (globalSearchInput) {
+                globalSearchInput.addEventListener("input", function (e) {
+                    const query = e.target.value.toLowerCase();
+                    const allItems =
+                        document.querySelectorAll(".modifier-item");
+                    allItems.forEach((item) => {
+                        const text = item.textContent.toLowerCase();
+                        item.style.display = text.includes(query)
+                            ? "block"
+                            : "none";
+                    });
+                });
+            }
+
+            // Set up refresh bar animation
+            setInterval(updateRefreshBar, 1000);
+            updateRefreshBar();
+
+            // Auto-refresh every 5 minutes
+            setInterval(fetchModifiers, 5 * 60 * 1000);
+        </script>
+    </body>
 </html>
